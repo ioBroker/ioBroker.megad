@@ -1,0 +1,141 @@
+{
+    "common": {
+        "name":                     "megad",
+        "version":                  "0.0.1",
+        "title":                    "Mega-D Adapter",
+        "desc":                     "Lets control the MegaD-328 over ethernet (http://www.ab-log.ru/smart-house/ethernet/megad-328)",
+        "authors": [
+            "bluefox <bluefox@ccu.io>"
+        ],
+        "license":                  "MIT",
+        "platform":                 "Javascript/Node.js",
+        "mode":                     "daemon",
+        "loglevel":                 "info",
+        "icon":                     "megad.png",
+        "messagebox":               true,
+        "keywords":                 ["Mega-D", "communication"],
+		"enabled":                  false,
+        "extIcon":                  "https://raw.githubusercontent.com/ioBroker/ioBroker.megad/master/admin/megad.png"
+    },
+    "native": {
+        "ip":                       "192.168.0.100",
+        "name":                     "",
+        "port":                     80,
+        "pollInterval":             30,
+        "password":                 "sec",
+        "ports": [
+            {
+                "name":    "port0",
+                "input":   true,
+                "switch":  true,
+                "offset":  0,
+                "factor":  1,
+                "digital": false
+            },
+            {
+                "name":    "port1",
+                "input":   true,
+                "switch":  true,
+                "offset":  0,
+                "factor":  1,
+                "digital": false
+            },
+            {
+                "name":    "port2",
+                "input":   true,
+                "switch":  true,
+                "offset":  0,
+                "factor":  1,
+                "digital": false
+            },
+            {
+                "name":    "port3",
+                "input":   true,
+                "switch":  true,
+                "offset":  0,
+                "factor":  1,
+                "digital": false
+            },
+            {
+                "name":    "port4",
+                "input":   true,
+                "switch":  true,
+                "offset":  0,
+                "factor":  1,
+                "digital": false
+            },
+            {
+                "name":    "port5",
+                "input":   true,
+                "switch":  true,
+                "offset":  0,
+                "factor":  1,
+                "digital": false
+            },
+            {
+                "name":    "port6",
+                "input":   true,
+                "switch":  true,
+                "offset":  0,
+                "factor":  1,
+                "digital": false
+            },
+            {
+                "name":    "port7",
+                "input":   false,
+                "switch":  false,
+                "offset":  0,
+                "factor":  1,
+                "digital": true
+            },
+            {
+                "name":    "port8",
+                "input":   false,
+                "switch":  false,
+                "offset":  0,
+                "factor":  1,
+                "digital": true
+            },
+            {
+                "name":    "port9",
+                "input":   false,
+                "switch":  false,
+                "offset":  0,
+                "factor":  1,
+                "digital": true
+            },
+            {
+                "name":    "port10",
+                "input":   false,
+                "switch":  false,
+                "offset":  0,
+                "factor":  1,
+                "digital": true
+            },
+            {
+                "name":    "port11",
+                "input":   false,
+                "switch":  false,
+                "offset":  0,
+                "factor":  1,
+                "digital": true
+            },
+            {
+                "name":    "port12",
+                "input":   false,
+                "switch":  false,
+                "offset":  0,
+                "factor":  1,
+                "digital": true
+            },
+            {
+                "name":    "port13",
+                "input":   false,
+                "switch":  false,
+                "offset":  0,
+                "factor":  1,
+                "digital": true
+            }
+        ]
+    }
+}

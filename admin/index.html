@@ -1,0 +1,112 @@
+<html>
+
+<link rel="stylesheet" type="text/css" href="../../lib/css/themes/jquery-ui/redmond/jquery-ui.min.css"/>
+<link rel="stylesheet" type="text/css" href="../../lib/css/jqGrid/ui.jqgrid-4.5.4.css"/>
+<script type="text/javascript" src="../../lib/js/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../../socket.io/socket.io.js"></script>
+<script type="text/javascript" src="../../lib/js/jquery-ui-1.10.3.full.min.js"></script>
+<script type="text/javascript" src="../../lib/js/jqGrid/jquery.jqGrid-4.5.4.min.js"></script>
+<script type="text/javascript" src="../../lib/js/jqGrid/grid.locale-all.js"></script>
+
+<link rel="stylesheet" type="text/css" href="../../css/adapter.css"/>
+<script type="text/javascript" src="../../js/translate.js"></script>
+<script type="text/javascript" src="../../js/adapter-settings.js"></script>
+
+<script type="text/javascript">
+    systemDictionary = {
+        "MegaD Name:":          {"en": "MegaD Name:", "de": "MegaD Name:", "ru": "MegaD Имя:"},
+        "ioBroker Web Port:":   {"en": "ioBroker Web Port:", "de": "ioBroker Web Port:", "ru": "ioBroker веб-порт:"},
+        "Poll interval (sec):": {"en": "Poll interval (sec):", "de": "Abfrage Intervall (sek):", "ru": "Интервал опроса (сек):"},
+        "MegaD Password:":      {"en": "MegaD Password:", "de": "MegaD Kennword:", "ru": "MegaD Пароль:"},
+        "name":                 {"en": "Name", "de": "Name", "ru": "Имя"},
+        "input":                {"en": "Input", "de": "Eingang", "ru": "Вход"},
+        "switch":               {"en": "Switch", "de": "Schalter", "ru": "Переключатель"},
+        "offset":               {"en": "Offset", "de": "Offset", "ru": "Сдвиг"},
+        "factor":               {"en": "Factor", "de": "Factor", "ru": "Множитель"},
+        "digital":              {"en": "Digital", "de": "Digital", "ru": "Цифровой"},
+        "Ports":                {"en": "Ports", "de": "Ports", "ru": "Порты"},
+        "MegaD-328 adapter settings": {"en": "MegaD-328 adapter settings", "de": "MegaD-328 Adaptereinstellungen", "ru": "MegaD-328 настройки"},
+        "IP:":                  {"en": "MegaD IP:", "de": "MegaD IP:", "ru": "IP Адрес устройства:"}
+    };
+
+    // the function loadSettings has to exist ...
+    function load(settings, onChange) {
+        if (!settings) return;
+
+        for (var key in settings) {
+            // example: select elements with id=key and class=value and insert value
+            if ($('#' + key + '.value').attr('type') == 'checkbox') {
+                $('#' + key + '.value').prop('checked', settings[key]).change(function() {
+                    if ($('#auth').prop('checked')) {
+                        $('#secure').prop('checked', true);
+                    }
+                    onChange();
+                });
+            } else {
+                $('#' + key + '.value').val(settings[key]).change(function() {
+                    onChange();
+                }).keyup(function() {
+                    onChange();
+                });
+            }
+        }
+
+        editTable({
+            tabId: 'ports',
+            cols: [
+                {name: 'name'},
+                {name: 'input', checkbox: 'true', width: 60},
+                {name: 'switch', checkbox: 'true', width: 60},
+                {name: 'offset', width: 60},
+                {name: 'factor', width: 60},
+                {name: 'digital', checkbox: 'true', width: 60}
+            ],
+            values: settings.ports,
+            top: 360,
+            title: 'Ports',
+            onChange: function () {
+                onChange();
+            }
+        });
+
+        onChange(false);
+    }
+
+    // ... and the function save has to exist.
+    // you have to make sure the callback is called with the settings object as first param!
+    function save(callback) {
+        // example: select elements with class=value and build settings object
+        var obj = {};
+        $('.value').each(function () {
+            var $this = $(this);
+            if ($this.attr('type') == 'checkbox') {
+                obj[$this.attr('id')] = $this.prop('checked');
+            } else {
+                obj[$this.attr('id')] = $this.val();
+            }
+        });
+
+        // Get edited table
+        obj.ports = getTableResult('ports', ['name', 'input', 'switch', 'offset', 'factor', 'digital']);
+
+        callback(obj);
+    }
+</script>
+
+<!-- you have to put your config page in a div with id adapter-container -->
+<div id="adapter-container">
+
+    <table><tr><td><img src="megad.png"></td><td><h3 class="translate">MegaD-328 adapter settings</h3></td></tr></table>
+
+    <table>
+        <tr><td class="translate">IP:</td><td>                 <input  class="value" id="ip"/></select></td>
+            <td class="translate">MegaD Name:</td><td>         <input  class="value" id="name"/></td></tr>
+        <tr><td class="translate">ioBroker Web Port:</td><td>  <input  class="value" id="port" maxlength="5"/></td>
+            <td class="translate">Poll interval (sec):</td><td><input  class="value" id="pollInterval" maxlength="3"/></td>
+        <tr><td class="translate">MegaD Password:</td><td>     <input  class="value" id="password" maxlength="3"/></td>
+            <td></td><td></td>
+        </tr>
+    </table>
+    <table id="ports"></table><div id="pager-ports"></div>
+</div>
+</html>
