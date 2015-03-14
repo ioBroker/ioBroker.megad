@@ -14,19 +14,19 @@
 
 <script type="text/javascript">
     systemDictionary = {
-        "MegaD Name:":          {"en": "MegaD Name:", "de": "MegaD Name:", "ru": "MegaD Имя:"},
-        "ioBroker Web Port:":   {"en": "ioBroker Web Port:", "de": "ioBroker Web Port:", "ru": "ioBroker веб-порт:"},
-        "Poll interval (sec):": {"en": "Poll interval (sec):", "de": "Abfrage Intervall (sek):", "ru": "Интервал опроса (сек):"},
-        "MegaD Password:":      {"en": "MegaD Password:", "de": "MegaD Kennword:", "ru": "MegaD Пароль:"},
-        "name":                 {"en": "Name", "de": "Name", "ru": "Имя"},
-        "input":                {"en": "Input", "de": "Eingang", "ru": "Вход"},
-        "switch":               {"en": "Switch", "de": "Schalter", "ru": "Переключатель"},
-        "offset":               {"en": "Offset", "de": "Offset", "ru": "Сдвиг"},
-        "factor":               {"en": "Factor", "de": "Factor", "ru": "Множитель"},
-        "digital":              {"en": "Digital", "de": "Digital", "ru": "Цифровой"},
-        "Ports":                {"en": "Ports", "de": "Ports", "ru": "Порты"},
+        "MegaD Name:":          {"en": "MegaD Name:",           "de": "MegaD Name:",            "ru": "MegaD Имя:"},
+        "ioBroker Web Port:":   {"en": "ioBroker Web Port:",    "de": "ioBroker Web Port:",     "ru": "ioBroker веб-порт:"},
+        "Poll interval (sec):": {"en": "Poll interval (sec):",  "de": "Abfrage Intervall (sek):", "ru": "Интервал опроса (сек):"},
+        "MegaD Password:":      {"en": "MegaD Password:",       "de": "MegaD Kennword:",        "ru": "MegaD Пароль:"},
+        "name":                 {"en": "Name",                  "de": "Name",                   "ru": "Имя"},
+        "input":                {"en": "Input",                 "de": "Eingang",                "ru": "Вход"},
+        "switch":               {"en": "Switch",                "de": "Schalter",               "ru": "Переключатель"},
+        "offset":               {"en": "Offset",                "de": "Offset",                 "ru": "Сдвиг"},
+        "factor":               {"en": "Factor",                "de": "Factor",                 "ru": "Множитель"},
+        "digital":              {"en": "Digital",               "de": "Digital",                "ru": "Цифровой"},
+        "Ports":                {"en": "Ports",                 "de": "Ports",                  "ru": "Порты"},
         "MegaD-328 adapter settings": {"en": "MegaD-328 adapter settings", "de": "MegaD-328 Adaptereinstellungen", "ru": "MegaD-328 настройки"},
-        "IP:":                  {"en": "MegaD IP:", "de": "MegaD IP:", "ru": "IP Адрес устройства:"}
+        "IP:":                  {"en": "MegaD IP:",             "de": "MegaD IP:",              "ru": "IP Адрес устройства:"}
     };
 
     // the function loadSettings has to exist ...
@@ -55,10 +55,10 @@
             tabId: 'ports',
             cols: [
                 {name: 'name'},
-                {name: 'input', checkbox: 'true', width: 60},
-                {name: 'switch', checkbox: 'true', width: 60},
-                {name: 'offset', width: 60},
-                {name: 'factor', width: 60},
+                {name: 'input', checkbox: 'true', width: 45},
+                {name: 'switch', checkbox: 'true', width: 90},
+                {name: 'offset', width: 45},
+                {name: 'factor', width: 65},
                 {name: 'digital', checkbox: 'true', width: 60}
             ],
             values: settings.ports,
@@ -69,6 +69,7 @@
             }
         });
 
+        $('.ui-jqgrid-bdiv').css({'overflow-x': 'hidden'});
         onChange(false);
     }
 

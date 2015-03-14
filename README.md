@@ -94,5 +94,8 @@ ioBrokerЗначение = (MegaЗначение/256) * Множитель + С�
         
         
 ## Changelog
+### 0.0.2 (2015-03-14)
+* (bluefox) read status off all ports together
+
 ### 0.0.1 (2015-03-05)
 * (bluefox) make socket usable as module

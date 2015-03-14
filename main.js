@@ -163,6 +163,37 @@ function getPortState(port, callback) {
     });
 }
 
+function getPortsState(callback) {
+    var options = {
+        host: adapter.config.ip,
+        port: 80,
+        path: '/' + adapter.config.password + '/?cmd=all'
+    };
+    adapter.log.debug("adapter megaD getPortState http://" + options.host + options.path);
+
+    http.get(options, function (res) {
+        var xmldata = '';
+        res.on('error', function (e) {
+            adapter.log.warn("megaD: " + e);
+        });
+        res.on('data', function (chunk) {
+            xmldata += chunk;
+        });
+        res.on('end', function () {
+            adapter.log.debug("adapter megaD response for " + adapter.config.ip + "[" + port + "]: " + xmldata);
+            // Analyse answer and updates staties
+            if (callback) {
+                callback(xmldata);
+            }
+        });
+    }).on('error', function (e) {
+        adapter.log.warn("adapter megaD: Got error by request " + e.message);
+        if (typeof simulate !== "undefined") {
+            callback(simulate.join(';'));
+        }
+    });
+}
+
 function processPortState(_port, value) {
     var _ports = adapter.config.ports;
 
@@ -203,9 +234,17 @@ function processPortState(_port, value) {
 }
 
 function pollStatus(dev) {
-    for (var port = 0; port < adapter.config.ports.length; port++) {
+    /*for (var port = 0; port < adapter.config.ports.length; port++) {
         getPortState(port, processPortState);
-    }
+    }*/
+    getPortsState(function (data) {
+        if (data) {
+            var ports = data.split(';');
+            for (var p = 0; p < ports.length; p++) {
+                processPortState(p, ports[p]);
+            }
+        }
+    });
 }
 
 // Process http://ioBroker:80/instance/?pt=6
