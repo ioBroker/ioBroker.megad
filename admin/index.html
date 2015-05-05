@@ -14,52 +14,60 @@
 
 <script type="text/javascript">
     systemDictionary = {
-        "MegaD Name:":          {"en": "MegaD Name:",           "de": "MegaD Name:",            "ru": "MegaD Имя:"},
-        "ioBroker Web Port:":   {"en": "ioBroker Web Port:",    "de": "ioBroker Web Port:",     "ru": "ioBroker веб-порт:"},
+        "MegaD Name:":          {"en": "MegaD Name:",           "de": "MegaD Name:",              "ru": "MegaD Имя:"},
+        "ioBroker Web Port:":   {"en": "ioBroker Web Port:",    "de": "ioBroker Web Port:",       "ru": "ioBroker веб-порт:"},
         "Poll interval (sec):": {"en": "Poll interval (sec):",  "de": "Abfrage Intervall (sek):", "ru": "Интервал опроса (сек):"},
-        "MegaD Password:":      {"en": "MegaD Password:",       "de": "MegaD Kennword:",        "ru": "MegaD Пароль:"},
-        "name":                 {"en": "Name",                  "de": "Name",                   "ru": "Имя"},
-        "input":                {"en": "Input",                 "de": "Eingang",                "ru": "Вход"},
-        "switch":               {"en": "Switch",                "de": "Schalter",               "ru": "Переключатель"},
-        "offset":               {"en": "Offset",                "de": "Offset",                 "ru": "Сдвиг"},
-        "factor":               {"en": "Factor",                "de": "Factor",                 "ru": "Множитель"},
-        "digital":              {"en": "Digital",               "de": "Digital",                "ru": "Цифровой"},
-        "Ports":                {"en": "Ports",                 "de": "Ports",                  "ru": "Порты"},
+        "MegaD Password:":      {"en": "MegaD Password:",       "de": "MegaD Kennword:",          "ru": "MegaD Пароль:"},
+        "name":                 {"en": "Name",                  "de": "Name",                     "ru": "Имя"},
+        "input":                {"en": "Input",                 "de": "Eingang",                  "ru": "Вход"},
+        "switch":               {"en": "Switch",                "de": "Schalter",                 "ru": "Переключатель"},
+        "offset":               {"en": "Offset",                "de": "Offset",                   "ru": "Сдвиг"},
+        "factor":               {"en": "Factor",                "de": "Factor",                   "ru": "Множитель"},
+        "digital":              {"en": "Digital",               "de": "Digital",                  "ru": "Цифровой"},
+        "long":                 {"en": "Long press",            "de": "Long press",               "ru": "Удержание"},
+        "double":               {"en": "Double click ms",       "de": "Double click ms",          "ru": "Двойное нажатие"},
+        "Ports":                {"en": "Ports",                 "de": "Ports",                    "ru": "Порты"},
+        "Long press detect (ms):": {"en": "Long press detection (ms):", "de": "Langes-Drucken-Erkennung (ms):", "ru": "Интервал для длинного нажатия (мс):"},
         "MegaD-328 adapter settings": {"en": "MegaD-328 adapter settings", "de": "MegaD-328 Adaptereinstellungen", "ru": "MegaD-328 настройки"},
-        "IP:":                  {"en": "MegaD IP:",             "de": "MegaD IP:",              "ru": "IP Адрес устройства:"}
+        "IP:":                  {"en": "MegaD IP:",             "de": "MegaD IP:",                "ru": "IP Адрес устройства:"}
     };
 
     // the function loadSettings has to exist ...
     function load(settings, onChange) {
         if (!settings) return;
 
-        for (var key in settings) {
+        if (settings.longPress === undefined) settings.longPress = 400;
+
+        $('.value').each(function () {
+            var key = $(this).attr('id');
             // example: select elements with id=key and class=value and insert value
-            if ($('#' + key + '.value').attr('type') == 'checkbox') {
-                $('#' + key + '.value').prop('checked', settings[key]).change(function() {
+            if ($(this).attr('type') == 'checkbox') {
+                $(this).prop('checked', settings[key]).change(function() {
                     if ($('#auth').prop('checked')) {
                         $('#secure').prop('checked', true);
                     }
                     onChange();
                 });
             } else {
-                $('#' + key + '.value').val(settings[key]).change(function() {
+                $(this).val(settings[key]).change(function() {
                     onChange();
                 }).keyup(function() {
                     onChange();
                 });
             }
-        }
+        });
 
         editTable({
             tabId: 'ports',
             cols: [
                 {name: 'name'},
-                {name: 'input', checkbox: 'true', width: 45},
-                {name: 'switch', checkbox: 'true', width: 90},
-                {name: 'offset', width: 45},
-                {name: 'factor', width: 65},
-                {name: 'digital', checkbox: 'true', width: 60}
+                {name: 'input',   checkbox: 'true', width: 45},
+                {name: 'switch',  checkbox: 'true', width: 90},
+                {name: 'offset',                    width: 45},
+                {name: 'factor',                    width: 65},
+                {name: 'digital', checkbox: 'true', width: 60},
+                {name: 'long',    checkbox: 'true', width: 90},
+                {name: 'double',                    width: 90}
             ],
             values: settings.ports,
             top: 360,
@@ -88,7 +96,7 @@
         });
 
         // Get edited table
-        obj.ports = getTableResult('ports', ['name', 'input', 'switch', 'offset', 'factor', 'digital']);
+        obj.ports = getTableResult('ports', ['name', 'input', 'switch', 'offset', 'factor', 'digital', 'long', 'double']);
 
         callback(obj);
     }
@@ -100,12 +108,12 @@
     <table><tr><td><img src="megad.png"></td><td><h3 class="translate">MegaD-328 adapter settings</h3></td></tr></table>
 
     <table>
-        <tr><td class="translate">IP:</td><td>                 <input  class="value" id="ip"/></select></td>
-            <td class="translate">MegaD Name:</td><td>         <input  class="value" id="name"/></td></tr>
-        <tr><td class="translate">ioBroker Web Port:</td><td>  <input  class="value" id="port" maxlength="5"/></td>
-            <td class="translate">Poll interval (sec):</td><td><input  class="value" id="pollInterval" maxlength="3"/></td>
-        <tr><td class="translate">MegaD Password:</td><td>     <input  class="value" id="password" maxlength="3"/></td>
-            <td></td><td></td>
+        <tr><td class="translate" style="text-align: right">IP:</td><td>                    <input  class="value" id="ip"/></select></td>
+            <td class="translate" style="text-align: right">MegaD Name:</td><td>            <input  class="value" id="name"/></td></tr>
+        <tr><td class="translate" style="text-align: right">ioBroker Web Port:</td><td>     <input  class="value" id="port"         maxlength="5"/></td>
+            <td class="translate" style="text-align: right">Poll interval (sec):</td><td>   <input  class="value" id="pollInterval" maxlength="3"/></td>
+        <tr><td class="translate" style="text-align: right">MegaD Password:</td><td>        <input  class="value" id="password"     maxlength="3"/></td>
+            <td class="translate" style="text-align: right">Long press detect (ms):</td><td><input  class="value" id="longPress"    maxlength="4"/></td>
         </tr>
     </table>
     <table id="ports"></table><div id="pager-ports"></div>

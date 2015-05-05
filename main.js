@@ -97,18 +97,11 @@ function processMessage(message) {
     // Command from instance with web server
     if (adapter.config.ports[port]) {
         // If digital port
-        if (adapter.config.ports[port].digital && !adapter.config.ports[message].switch) {
+        if (adapter.config.ports[port].digital) {
             adapter.config.ports[port].value = true;
-            adapter.log.debug("adapter megaD: reported new state for port " + port + " - " + adapter.config.ports[port].value);
-            adapter.setState(adapter.config.ports[port].id, true, true);
-
-            // Set automatically the state of the port to false after 100ms
-            setTimeout(function () {
-                adapter.config.ports[port].value = false;
-                adapter.setState(adapter.config.ports[port].id, false, true);
-            }, 100);
+            triggerShortPress(port);
         } else {
-            adapter.log.debug("adapter megaD: reported new value for port " + port + ", request actual value");
+            adapter.log.debug("reported new value for port " + port + ", request actual value");
             // Get value from analog port
             getPortState(port, processPortState);
         }
@@ -138,7 +131,7 @@ function getPortState(port, callback) {
         port: 80,
         path: '/' + adapter.config.password + '/?pt=' + port + '&cmd=get'
     };
-    adapter.log.debug("adapter megaD getPortState http://" + options.host + options.path);
+    adapter.log.debug("getPortState http://" + options.host + options.path);
 
     http.get(options, function (res) {
         var xmldata = '';
@@ -149,14 +142,14 @@ function getPortState(port, callback) {
             xmldata += chunk;
         });
         res.on('end', function () {
-            adapter.log.debug("adapter megaD response for " + adapter.config.ip + "[" + port + "]: " + xmldata);
+            adapter.log.debug("response for " + adapter.config.ip + "[" + port + "]: " + xmldata);
             // Analyse answer and updates staties
             if (callback) {
                 callback(port, xmldata);
             }
         });
     }).on('error', function (e) {
-        adapter.log.warn("adapter megaD: Got error by request " + e.message);
+        adapter.log.warn("Got error by request " + e.message);
         if (typeof simulate !== "undefined") {
             callback(port, simulate[port]);
         }
@@ -169,7 +162,7 @@ function getPortsState(callback) {
         port: 80,
         path: '/' + adapter.config.password + '/?cmd=all'
     };
-    adapter.log.debug("adapter megaD getPortState http://" + options.host + options.path);
+    adapter.log.debug("getPortState http://" + options.host + options.path);
 
     http.get(options, function (res) {
         var xmldata = '';
@@ -180,18 +173,78 @@ function getPortsState(callback) {
             xmldata += chunk;
         });
         res.on('end', function () {
-            adapter.log.debug("adapter megaD response for " + adapter.config.ip + "[" + port + "]: " + xmldata);
+            adapter.log.debug("Response for " + adapter.config.ip + "[" + port + "]: " + xmldata);
             // Analyse answer and updates staties
             if (callback) {
                 callback(xmldata);
             }
         });
     }).on('error', function (e) {
-        adapter.log.warn("adapter megaD: Got error by request " + e.message);
+        adapter.log.warn("Got error by request " + e.message);
         if (typeof simulate !== "undefined") {
             callback(simulate.join(';'));
         }
     });
+}
+
+function triggerLongPress(_port) {
+    var _ports = adapter.config.ports;
+    if (_ports[_port].long) {
+        _ports[_port].longTimer = null;
+        _ports[_port].longDone = true;
+        adapter.log.debug('Generate LONG press on port ' + _port)
+        adapter.setState(_ports[_port].id + '_long', true, true);
+        // Set to false in 200 ms
+        setTimeout(function () {
+            adapter.setState(_ports[_port].id + '_long', false, true);
+        }, 200);
+    }
+}
+
+function triggerShortPress(_port) {
+    var _ports = adapter.config.ports;
+
+    if (_ports[_port].digital && _ports[_port].double) {
+        if (_ports[_port].doubleTimer) {
+            clearTimeout(_ports[_port].doubleTimer);
+            _ports[_port].doubleTimer = null;
+            adapter.log.debug('Generate double click on port ' + _port);
+            // Generate double click
+            adapter.setState(_ports[_port].id + '_double', true, true);
+            // Set automatically the state of the port to false after 100ms
+            setTimeout(function () {
+                adapter.setState(_ports[_port].id + '_double', false, true);
+            }, 100);
+        } else {
+            adapter.log.debug("Start timer for " + _ports[_port].double + "ms to detect double click on " + _port);
+            _ports[_port].doubleTimer = setTimeout(function () {
+                adapter.log.debug('Generate short click on port ' + _port);
+                // Generate single click
+                _ports[_port].doubleTimer = null;
+                adapter.setState(_ports[_port].id, true, true);
+                // Set automatically the state of the port to false after 100ms
+                setTimeout(function () {
+                    adapter.setState(_ports[_port].id, false, true);
+                }, 100);
+            }, _ports[_port].double);
+        }
+    } else {
+        if (!_ports[_port].switch) {
+            _ports[_port].value = true;
+            adapter.log.debug("reported new state for port " + _port + " - " + _ports[_port].value);
+            adapter.setState(_ports[_port].id, true, true);
+
+            // Set automatically the state of the port to false after 100ms
+            setTimeout(function () {
+                _ports[_port].value = false;
+                adapter.setState(_ports[_port].id, false, true);
+            }, 100);
+        } else {
+            if (_ports[_port].value) {
+                adapter.setState(_ports[_port].id, true, true);
+            }
+        }
+    }
 }
 
 function processPortState(_port, value) {
@@ -216,16 +269,59 @@ function processPortState(_port, value) {
 
         // If status changed
         if (value !== _ports[_port].value) {
+            var oldValue = _ports[_port].value;
             _ports[_port].value = value;
 
             if (_ports[_port].digital) {
-                adapter.log.debug("adapter megaD detected new state on port [" + _port + "]: " + value);
-                adapter.setState(_ports[_port].id, !!value, true);
+                // If press_long
+                if (_ports[_port].long) {
+                    // Detect EDGE
+                    if (oldValue != value) {
+                        adapter.log.debug("new state detected on port [" + _port + "]: " + value);
+                        // If pressed
+                        if (value) {
+                            // If no timer running
+                            if (!_ports[_port].longTimer) {
+                                adapter.log.debug("start long click detection on [" + _port + "]: " + value);
+                                // Try to detect long click
+                                _ports[_port].longTimer = setTimeout(triggerLongPress, adapter.config.longPress, _port);
+                            } else {
+                                adapter.log.warn("long timer runs, but state change happens on [" + _port + "]: " + value);
+                            }
+                        } else {
+                            // If released
+                            // If timer for double running => stop it
+                            if (_ports[_port].longTimer) {
+                                adapter.log.debug("stop long click detection on [" + _port + "]: " + value);
+                                clearTimeout(_ports[_port].longTimer);
+                                _ports[_port].longTimer = null;
+                            }
+
+                            // If long click generated => clear flag and do nothing, elsewise generate normal click
+                            if (!_ports[_port].longDone) {
+                                adapter.log.debug("detected short click on port [" + _port + "]: " + value);
+                                adapter.setState(_ports[_port].id, !!value, true);
+                            } else {
+                                adapter.log.debug("clear the double click flag on port [" + _port + "]: " + value);
+                                _ports[_port].longDone = false;
+                            }
+                        }
+                    } else {
+                        adapter.log.debug('ignore state on port [' + _port + ']: ' + value + ' (because the same)');
+                    }
+                } else {
+                    adapter.log.debug("detected new state on port [" + _port + "]: " + value);
+                    if (value) {
+                        triggerShortPress(_port);
+                    } else {
+                        adapter.setState(_ports[_port].id, !!value, true);
+                    }
+                }
             } else if (_ports[_port].isRollo) {
-                adapter.log.debug("adapter megaD detected new rollo state on port [" + _port + "]: " + value + ", calc state " + ((256 - value) / 256));
+                adapter.log.debug("detected new rollo state on port [" + _port + "]: " + value + ", calc state " + ((256 - value) / 256));
                 adapter.setState(_ports[_port].id, ((256 - _ports[_port].value) / 256).toFixed(2), true);
             } else {
-                adapter.log.debug("adapter megaD detected new value on port [" + _port + "]: " + value + ", calc state " + (value / 256));
+                adapter.log.debug("detected new value on port [" + _port + "]: " + value + ", calc state " + (value / 256));
                 var f = (value / 256) * _ports[_port].factor + _ports[_port].offset;
                 adapter.setState(_ports[_port].id, f.toFixed(4), true);
             }
@@ -308,17 +404,9 @@ function restApi(req, res) {
         if (adapter.config.ports[_port]) {
             // If digital port
             if (adapter.config.ports[_port].digital && !adapter.config.ports[_port].switch) {
-                adapter.config.ports[_port].value = true;
-                adapter.log.debug("adapter megaD: reported new state for port " + _port + " - " + adapter.config.ports[_port].value);
-                adapter.setState(adapter.config.ports[_port].id, true, true);
-
-                // Set automatically the state of the port to false after 100ms
-                setTimeout(function () {
-                    adapter.config.ports[_port].value = false;
-                    adapter.setState(adapter.config.ports[_port].id, false, true);
-                }, 100);
+                triggerShortPress(_port);
             } else {
-                adapter.log.debug("adapter megaD: reported new value for port " + _port + ", request actual value");
+                adapter.log.debug("reported new value for port " + _port + ", request actual value");
                 // Get value from analog port
                 getPortState(_port, processPortState);
             }
@@ -374,20 +462,50 @@ function createState(port, callback) {
     if (port.room) adapter.addStateToEnum('room', port.room, '', 'ports', id);
 
     var native = JSON.parse(JSON.stringify(port));
+
     if (native.name !== undefined) delete native.name;
     if (native.room !== undefined) delete native.room;
+
     var common = {
         name:   port.name,
         def:    false,
         role:   'indicator',
         type:   port.digital ? 'boolean' : 'number',
         read:   'true',
-        write:  (port.input || false).toString()
+        write:  (port.input || false).toString(),
+        desc:   port.digital ? 'Short press on port ' + port.name : 'Analog value on port' + port.name
     };
 
+    var task = 1;
     adapter.createState('', 'ports', id, common, native, function () {
-        if (callback) callback({_id: id, common: common, native: native});
+        task--;
+        if (!task && callback) callback({_id: id, common: common, native: native});
     });
+
+    if (port.digital && port.long) {
+        var c = JSON.parse(JSON.stringify(common));
+        c.name = port.name + ' long';
+        c.desc = 'Long press on port ' + port.name;
+        task++;
+        adapter.createState('', 'ports', id + '_long', c, native, function () {
+            task--;
+            if (!task && callback) callback({_id: id, common: common, native: native});
+        });
+    } else {
+        adapter.deleteState('', 'ports', id + '_long');
+    }
+    if (port.digital && port.double) {
+        var d = JSON.parse(JSON.stringify(common));
+        d.name = port.name + ' double';
+        d.desc = 'Dobule click on port ' + port.name;
+        task++;
+        adapter.createState('', 'ports', id + '_double', d, native, function () {
+            task--;
+            if (!task && callback) callback({_id: id, common: common, native: native});
+        });
+    } else {
+        adapter.deleteState('', 'ports', id + '_double');
+    }
 }
 
 function addState(port, callback) {
@@ -415,6 +533,9 @@ function addState(port, callback) {
 */
 
 function syncObjects() {
+
+    adapter.config.longPress = parseInt(adapter.config.longPress, 10) || 400;
+
     // read all objects of the device
     adapter.getStatesOf('', 'ports', function (err, _states) {
         var configToDelete = [];
@@ -435,17 +556,40 @@ function syncObjects() {
 
                     // Check name and room
                     for (var u = 0; u < adapter.config.ports.length; u++) {
+
+                        adapter.config.ports[u].digital = (adapter.config.ports[u].digital === true || adapter.config.ports[u].digital === 'true');
+                        adapter.config.ports[u].switch  = (adapter.config.ports[u].switch  === true || adapter.config.ports[u].switch  === 'true');
+                        adapter.config.ports[u].input   = (adapter.config.ports[u].input   === true || adapter.config.ports[u].input   === 'true');
+                        adapter.config.ports[u].double  = parseInt(adapter.config.ports[u].double, 10);
+                        adapter.config.ports[u].long    = (adapter.config.ports[u].long   === true || adapter.config.ports[u].long   === 'true');
+
+                        // Check if settings are valid
+                        if (adapter.config.ports[u].digital && adapter.config.ports[u].long && !adapter.config.ports[u].switch) {
+                            adapter.log.warn('To enable long press detection on port ' + adapter.config.ports[u].name + ' set port type to "switch"!');
+                            adapter.config.ports[u].long = false;
+                        }
+                        if (adapter.config.ports[u].digital && adapter.config.ports[u].long && !adapter.config.longPress) {
+                            adapter.log.warn('To enable long press detection on port ' + adapter.config.ports[u].name + ' set longPress interval to non zero!');
+                            adapter.config.ports[u].long = false;
+                        }
+
                         if (adapter.config.ports[u].name == _states[j].common.name) {
                             var n1 = JSON.parse(JSON.stringify(_states[j].native));
                             var n2 = JSON.parse(JSON.stringify(adapter.config.ports[u]));
-                            if (n2.name !== undefined) delete n2.name;
-                            if (n2.room !== undefined) delete n2.room;
-                            n2.index = u;
-                            n2 = JSON.stringify(n2);
 
-                            if (JSON.stringify(n1) != n2) {
-                                n2 = JSON.parse(n2);
+                            if (n1.long != n2.long || n1.double != n2.double) {
+                                addState(JSON.parse(JSON.stringify(adapter.config.ports[u])));
                                 adapter.extendObject(_states[j]._id, {native: n2});
+                            } else {
+                                if (n2.name !== undefined) delete n2.name;
+                                if (n2.room !== undefined) delete n2.room;
+                                n2.index = u;
+                                n2 = JSON.stringify(n2);
+
+                                if (JSON.stringify(n1) != n2) {
+                                    n2 = JSON.parse(n2);
+                                    adapter.extendObject(_states[j]._id, {native: n2});
+                                }
                             }
 
                             if (adapter.config.ports[u].room) {
@@ -464,7 +608,7 @@ function syncObjects() {
         if (configToAdd.length) {
             for (var r = 0; r < adapter.config.ports.length; r++) {
                 if (configToAdd.indexOf(adapter.config.ports[r].name) != -1) {
-                    addState(adapter.config.ports[r]);
+                    addState(JSON.parse(JSON.stringify(adapter.config.ports[r])));
                 }
             }
         }
@@ -483,6 +627,9 @@ function syncObjects() {
                 adapter.config.ports[k].input   = (adapter.config.ports[k].input   === true || adapter.config.ports[k].input   === 'true');
                 adapter.config.ports[k].factor  = parseFloat(adapter.config.ports[k].factor);
                 adapter.config.ports[k].offset  = parseFloat(adapter.config.ports[k].offset);
+                adapter.config.ports[k].double  = parseInt(adapter.config.ports[k].double, 10);
+                adapter.config.ports[k].long    = (adapter.config.ports[k].long   === true || adapter.config.ports[k].long   === 'true');
+
                 if (!adapter.config.ports[k].factor) {
                     adapter.config.ports[k].factor = 1;
                     adapter.log.error('Invalid factor 0 for port ' + k + '/"' + adapter.config.ports[k].name + '". Set factor to 1');

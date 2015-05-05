@@ -1,9 +1,13 @@
 {
     "common": {
         "name":                     "megad",
-        "version":                  "0.0.2",
+        "version":                  "0.0.3",
         "title":                    "Mega-D Adapter",
-        "desc":                     "Lets control the MegaD-328 over ethernet (http://www.ab-log.ru/smart-house/ethernet/megad-328)",
+        "desc":                     {
+            "en": "Lets control the MegaD-328 over ethernet/internet (http://www.ab-log.ru/smart-house/ethernet/megad-328)",
+            "de": "Ermöglicht die steuerung von MegaD-328 über Ethernet/Internet (http://www.ab-log.ru/smart-house/ethernet/megad-328)",
+            "ru": "Позволяет управлять MegaD-328 через ethernet/интернет (http://www.ab-log.ru/smart-house/ethernet/megad-328)"
+        },
         "authors": [
             "bluefox <bluefox@ccu.io>"
         ],
@@ -13,9 +17,17 @@
         "loglevel":                 "info",
         "icon":                     "megad.png",
         "messagebox":               true,
+        "readme":                   "https://raw.githubusercontent.com/ioBroker/ioBroker.megad/master/README.md",
         "keywords":                 ["Mega-D", "communication"],
 		"enabled":                  false,
-        "extIcon":                  "https://raw.githubusercontent.com/ioBroker/ioBroker.megad/master/admin/megad.png"
+        "extIcon":                  "https://raw.githubusercontent.com/ioBroker/ioBroker.megad/master/admin/megad.png",
+        "type":                     "hardware",
+        "config": {
+            "width":     900,
+            "height":    800,
+            "minWidth":  500,
+            "minHeight": 500
+        }
     },
     "native": {
         "ip":                       "192.168.0.100",
@@ -23,6 +35,7 @@
         "port":                     80,
         "pollInterval":             30,
         "password":                 "sec",
+        "longPress":                400,
         "ports": [
             {
                 "name":    "port0",
@@ -30,7 +43,9 @@
                 "switch":  true,
                 "offset":  0,
                 "factor":  1,
-                "digital": false
+                "digital": false,
+                "long":    false,
+                "double":  0
             },
             {
                 "name":    "port1",
@@ -38,7 +53,9 @@
                 "switch":  true,
                 "offset":  0,
                 "factor":  1,
-                "digital": false
+                "digital": false,
+                "long":    false,
+                "double":  0
             },
             {
                 "name":    "port2",
@@ -46,7 +63,9 @@
                 "switch":  true,
                 "offset":  0,
                 "factor":  1,
-                "digital": false
+                "digital": false,
+                "long":    false,
+                "double":  0
             },
             {
                 "name":    "port3",
@@ -62,7 +81,9 @@
                 "switch":  true,
                 "offset":  0,
                 "factor":  1,
-                "digital": false
+                "digital": false,
+                "long":    false,
+                "double":  0
             },
             {
                 "name":    "port5",
@@ -70,7 +91,9 @@
                 "switch":  true,
                 "offset":  0,
                 "factor":  1,
-                "digital": false
+                "digital": false,
+                "long":    false,
+                "double":  0
             },
             {
                 "name":    "port6",
@@ -78,7 +101,9 @@
                 "switch":  true,
                 "offset":  0,
                 "factor":  1,
-                "digital": false
+                "digital": false,
+                "long":    false,
+                "double":  0
             },
             {
                 "name":    "port7",
@@ -86,7 +111,9 @@
                 "switch":  false,
                 "offset":  0,
                 "factor":  1,
-                "digital": true
+                "digital": true,
+                "long":    false,
+                "double":  0
             },
             {
                 "name":    "port8",
@@ -94,7 +121,9 @@
                 "switch":  false,
                 "offset":  0,
                 "factor":  1,
-                "digital": true
+                "digital": true,
+                "long":    false,
+                "double":  0
             },
             {
                 "name":    "port9",
@@ -102,7 +131,9 @@
                 "switch":  false,
                 "offset":  0,
                 "factor":  1,
-                "digital": true
+                "digital": true,
+                "long":    false,
+                "double":  0
             },
             {
                 "name":    "port10",
@@ -110,7 +141,9 @@
                 "switch":  false,
                 "offset":  0,
                 "factor":  1,
-                "digital": true
+                "digital": true,
+                "long":    false,
+                "double":  0
             },
             {
                 "name":    "port11",
@@ -118,7 +151,9 @@
                 "switch":  false,
                 "offset":  0,
                 "factor":  1,
-                "digital": true
+                "digital": true,
+                "long":    false,
+                "double":  0
             },
             {
                 "name":    "port12",
@@ -126,7 +161,9 @@
                 "switch":  false,
                 "offset":  0,
                 "factor":  1,
-                "digital": true
+                "digital": true,
+                "long":    false,
+                "double":  0
             },
             {
                 "name":    "port13",
@@ -134,7 +171,9 @@
                 "switch":  false,
                 "offset":  0,
                 "factor":  1,
-                "digital": true
+                "digital": true,
+                "long":    false,
+                "double":  0
             }
         ]
     }

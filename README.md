@@ -1,7 +1,9 @@
 ![Logo](admin/megad.png)
 ioBroker MegaD-328 adapter
+
 =================
-Lets control the [MegaD-328](http://www.ab-log.ru/smart-house/ethernet/MegaD-328) over ethernet.
+
+Lets control the [MegaD-328](http://www.ab-log.ru/smart-house/ethernet/megad-328) over ethernet.
 ## English 
 [по русски](#Русский)
 
@@ -39,12 +41,14 @@ That means the button on port 7 was pressed. ioBroker expectes instance number (
 ### Ports
 All ports, that are desired to be used must be configured in right order. Following settings must be set for every port:
 
-- name: name of the port. Used by ioBroker;
-- input: Is the port INPUT(true) or output(false);
-- switch: Is the port can be ON or OFF (in this case value = TRUE) or just used to send the reports about button press (FALSE);
-- digital: Analog or digital port. ioBroker expects analog ports with range from 0 to 255.
-- offset: offset for the **analog** port.
-- factor:  multiply factor for **anaolog** port.
+- Name: name of the port. Used by ioBroker;
+- Input: Is the port INPUT(true) or output(false);
+- Switch: Is the port can be ON or OFF (in this case value = TRUE) or just used to send the reports about button press (FALSE);
+- Digital: Analog or digital port. ioBroker expects analog ports with range from 0 to 255.
+- Offset: offset for the **analog** port.
+- Factor:  multiply factor for **anaolog** port.
+- Long press: detect long press on digital port (port have to be SWITCH type)
+- Double click ms: interval for detection of double click
 
 ioBrokerValue = (MegaValue/256) * factor + offset;
 
@@ -80,6 +84,8 @@ To get the range of the analog value from 100 to 500 set the factor as 400 and o
 - Цифровой: Цифровой или аналоговый порт. ioBroker ожидает значени с аналогового порта в промежутке от 0 до 255.
 - Множитель:  множитель для значения **аналогового** порта.
 - Сдвиг: сдвиг для значения **аналогового** порта.
+- Удержание: если активировано, то порт будет генерировать событие "длинное нажатие" в объекте port_long (Порт должен быть цифровым и иметь тип "Переключатель")
+- Двойное нажатие: если активировано, то порт будет генерировать событие "double click" в объекте port_double
 
 ioBrokerЗначение = (MegaЗначение/256) * Множитель + Сдвиг;
 
