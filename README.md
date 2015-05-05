@@ -2,7 +2,6 @@
 ioBroker MegaD-328 adapter
 
 =================
-
 Lets control the [MegaD-328](http://www.ab-log.ru/smart-house/ethernet/megad-328) over ethernet.
 ## English 
 [по русски](#Русский)
