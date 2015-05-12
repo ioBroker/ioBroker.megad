@@ -99,6 +99,10 @@ ioBrokerЗначение = (MegaЗначение/256) * Множитель + С�
         
         
 ## Changelog
+### 0.0.3 (2015-03-14)
+* (bluefox) double click&long click
+* (bluefox) fix error with read all ports together
+
 ### 0.0.2 (2015-03-14)
 * (bluefox) read status off all ports together
 

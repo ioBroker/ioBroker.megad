@@ -126,9 +126,11 @@ var simulate = [
 ];
 
 function getPortState(port, callback) {
+    var parts = adapter.config.ip.split(':');
+
     var options = {
-        host: adapter.config.ip,
-        port: 80,
+        host: parts[0],
+        port: parts[1] || 80,
         path: '/' + adapter.config.password + '/?pt=' + port + '&cmd=get'
     };
     adapter.log.debug("getPortState http://" + options.host + options.path);
@@ -157,9 +159,11 @@ function getPortState(port, callback) {
 }
 
 function getPortsState(callback) {
+    var parts = adapter.config.ip.split(':');
+
     var options = {
-        host: adapter.config.ip,
-        port: 80,
+        host: parts[0],
+        port: parts[1] || 80,
         path: '/' + adapter.config.password + '/?cmd=all'
     };
     adapter.log.debug("getPortState http://" + options.host + options.path);
@@ -173,15 +177,15 @@ function getPortsState(callback) {
             xmldata += chunk;
         });
         res.on('end', function () {
-            adapter.log.debug("Response for " + adapter.config.ip + "[" + port + "]: " + xmldata);
+            adapter.log.debug('Response for ' + adapter.config.ip + '[all]: ' + xmldata);
             // Analyse answer and updates staties
             if (callback) {
                 callback(xmldata);
             }
         });
     }).on('error', function (e) {
-        adapter.log.warn("Got error by request " + e.message);
-        if (typeof simulate !== "undefined") {
+        adapter.log.warn('Got error by request ' + e.message);
+        if (typeof simulate !== 'undefined') {
             callback(simulate.join(';'));
         }
     });
@@ -422,9 +426,11 @@ function restApi(req, res) {
 function sendCommand(port, value) {
     var data = 'cmd=' + port + ':' + value;
 
+    var parts = adapter.config.ip.split(':');
+
     var options = {
-        host: adapter.config.ip,
-        port: 80,
+        host: parts[0],
+        port: parts[1] || 80,
         path: '/' + adapter.config.password + '/?' + data
     };
     adapter.log.debug('Send command "' + data + '" to ' + adapter.config.ip);
