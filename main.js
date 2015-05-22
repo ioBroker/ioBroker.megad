@@ -109,22 +109,25 @@ function processMessage(message) {
 }
 
 var simulate = [
+    "temp:20/hum:50",
     "OFF/0<br>",
     "ON/607<br>",
     "OFF/0<br>",
     "OFF/0<br>",
     "OFF/12<br>",
     "OFF/6<br>",
-    "OFF/4<br>",
+    "temp/21.5",
+    "OFF<br>",
     "OFF",
     "OFF",
     "OFF",
     "OFF",
     "OFF",
-    "OFF",
-    "0"
+    "234",
+    "234"
 ];
 
+// Get State of ONE port
 function getPortState(port, callback) {
     var parts = adapter.config.ip.split(':');
 
@@ -158,6 +161,7 @@ function getPortState(port, callback) {
     });
 }
 
+// Get state of ALL ports
 function getPortsState(callback) {
     var parts = adapter.config.ip.split(':');
 
@@ -193,6 +197,13 @@ function getPortsState(callback) {
 
 function triggerLongPress(_port) {
     var _ports = adapter.config.ports;
+	
+	if (!_ports[_port]) {
+		// No confiuration found
+		adapter.log.warn('Unknown port: ' + _port);
+		return;
+	}	
+	
     if (_ports[_port].long) {
         _ports[_port].longTimer = null;
         _ports[_port].longDone = true;
@@ -208,6 +219,12 @@ function triggerLongPress(_port) {
 function triggerShortPress(_port) {
     var _ports = adapter.config.ports;
 
+	if (!_ports[_port]) {
+		// No confiuration found
+		adapter.log.warn('Unknown port: ' + _port);
+		return;
+	}	
+	
     if (_ports[_port].digital && _ports[_port].double) {
         if (_ports[_port].doubleTimer) {
             clearTimeout(_ports[_port].doubleTimer);
@@ -254,12 +271,28 @@ function triggerShortPress(_port) {
 function processPortState(_port, value) {
     var _ports = adapter.config.ports;
 
+	if (!_ports[_port]) {
+		// No confiuration found
+		adapter.log.warn('Unknown port: ' + _port);
+		return;
+	}
+	
     if (value !== null) {
         var rawValue = value;
         // Value can be OFF/5 or 27/0 or 27 or ON
-        if (typeof value == "string") {
-            var t = value.split("/");
-            value = t[0];
+        if (typeof value == 'string') {
+            var t = value.split('/');
+            var m = value.match(/temp:([0-9.]+)/);
+            if (m) {
+                var hm = value.match(/hum:([0-9.]+)/);
+                if (hm) {
+                    adapter.log.debug('humidity: ' + hm[1] + '%, ignored');
+                }
+                value = m[1];
+            } else {
+                value = t[0];
+            }
+
             rawValue = value;
             t = null;
             if (value == 'OFF') {
@@ -627,7 +660,7 @@ function syncObjects() {
 
         if (adapter.config.ports) {
             for (k = 0; k < adapter.config.ports.length; k++) {
-                adapter.config.ports[k].id = 'ports.' + adapter.config.ports[k].name.replace(/[.\s]+/g, '_');
+                adapter.config.ports[k].id      = 'ports.' + adapter.config.ports[k].name.replace(/[.\s]+/g, '_');
                 adapter.config.ports[k].digital = (adapter.config.ports[k].digital === true || adapter.config.ports[k].digital === 'true');
                 adapter.config.ports[k].switch  = (adapter.config.ports[k].switch  === true || adapter.config.ports[k].switch  === 'true');
                 adapter.config.ports[k].input   = (adapter.config.ports[k].input   === true || adapter.config.ports[k].input   === 'true');
