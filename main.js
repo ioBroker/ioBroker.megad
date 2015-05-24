@@ -480,15 +480,18 @@ function sendCommand(port, value) {
         });
         res.on('end', function () {
             adapter.log.debug('Response "' + xmldata + '"');
-
-            // Set state only if positive response from megaD
-            if (adapter.config.ports[port].digital) {
-                adapter.setState(adapter.config.ports[port].id, value ? true : false, true);
-            } else if (adapter.config.ports[port].isRollo) {
-                adapter.setState(adapter.config.ports[port].id, ((255 - value) / 255).toFixed(2), true);
+            if (adapter.config.ports[port]) {
+                // Set state only if positive response from megaD
+                if (adapter.config.ports[port].digital) {
+                    adapter.setState(adapter.config.ports[port].id, value ? true : false, true);
+                } else if (adapter.config.ports[port].isRollo) {
+                    adapter.setState(adapter.config.ports[port].id, ((255 - value) / 255).toFixed(2), true);
+                } else {
+                    var f = (value / 256) * adapter.config.ports[port].factor + adapter.config.ports[port].offset;
+                    adapter.setState(adapter.config.ports[port].id, f.toFixed(4), true);
+                }
             } else {
-                var f = (value / 256) * adapter.config.ports[port].factor + adapter.config.ports[port].offset;
-                adapter.setState(adapter.config.ports[port].id, f.toFixed(4), true);
+                adapter.log.warn('Unknown port ' + port);
             }
         });
     }).on('error', function (e) {
