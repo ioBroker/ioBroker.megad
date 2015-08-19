@@ -1,7 +1,7 @@
 {
     "common": {
         "name":                     "megad",
-        "version":                  "0.1.2",
+        "version":                  "0.2.0",
         "title":                    "Mega-D Adapter",
         "desc":                     {
             "en": "Lets control the MegaD-328 over ethernet/internet (http://www.ab-log.ru/smart-house/ethernet/megad-328)",
@@ -35,7 +35,8 @@
         "port":                     80,
         "pollInterval":             30,
         "password":                 "sec",
-        "longPress":                400,
+        "longPress":                700,
+        "doublePress":              600,
         "ports":                    []
     }
 }
