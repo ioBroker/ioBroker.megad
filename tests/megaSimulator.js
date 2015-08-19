@@ -160,11 +160,12 @@ function requestProcessor(req, res) {
         args[q[0]] = q[1];
     }
 
-    if (args.pn) {
+    if (args.pt) {
         if (!ports[args.pt]) {
             res.writeHead(500, {'Content-Type': 'text/plain'});
             res.end('Invalid port: ' + args.pt, 'utf8');
         } else {
+            var text = 'OK';
             if (args.pty !== undefined) {
                 if (args.pty == 0 || args.pty == 1 || args.pty == 2 || args.pty == 3 || args.pty == 255) {
                     console.log('Set new type for port ' + args.pt + ': ' + ports[args.pt].pty + ' => ' + args.pty);
@@ -175,6 +176,7 @@ function requestProcessor(req, res) {
                     return;
                 }
             }
+            // In. Порт является Входом
             if (ports[args.pt].pty == 0) {
                 if (args.ecmd !== undefined) {
                     console.log('Set new ecmd for port ' + args.pt + ': ' + ports[args.pt].ecmd + ' => ' + args.ecmd);
@@ -194,7 +196,26 @@ function requestProcessor(req, res) {
                         return;
                     }
                 }
-            } else if (ports[args.pt].pty == 1) {
+                // show settings
+                text = '<p>P' + args.pt + ' - Input</p>';
+                text += '<p title="Сценарий по умолчанию, в котором задано управление Выходами (OUT) устройства в случае изменения состояния входа. (макс: 11 байт). Примечание. Сценарий выполняется всегда, если не указан сервер или если сервер указан, но не отвечает в течение 3 секунд. Сценарий по умолчанию не выполняется, если сервер указан и доступен.">' +
+                    'ecmd - Action: ' + ports[args.pt].ecmd + '</p>';
+
+                text += '<p title="URL, который вызывается устройством в случае изменения состояние входа (макс. 35 байт). Примечание. URL Net Action вызывается всегда, не зависимо от доступности сервера.">' +
+                    'eth - Net Action: ' + ports[args.pt].eth + '</p>';
+
+                var modes = [
+                    "Переход из разомкнутого в замкнутое состояние (устройство реагирует только на нажатие кнопки).",
+                    "Переход из разомкнутого в замкнутое состояние и наоборот (устройство реагирует как на нажатия, так и на отпускание кнопки)",
+                    "Переход из замкнутого в разомкнутое состояние (устройство реагирует только на отпускание кнопки)"
+                ];
+
+                text += '<p title="Режим обработки изменений состояния порта. Для наглядности приведены примеры с выключателем/кнопкой.">' +
+                    'm - Mode: ' + ports[args.pt].m + ' - ' + modes[ports[args.pt].m || 0] + '</p>';
+
+            } else
+            // Out. Порт является Выходом
+            if (ports[args.pt].pty == 1) {
                 if (args.m !== undefined) {
                     if (args.m == 0) {
                         console.log('Set new mode SWITCH for port ' + args.pt + ': ' + ports[args.pt].m + ' => ' + args.m);
@@ -228,7 +249,25 @@ function requestProcessor(req, res) {
                         return;
                     }
                 }
-            } else if (ports[args.pt].pty == 2) {
+
+                // show settings
+                text = '<p>P' + args.pt + ' - Output</p>';
+                text += '<p title="Состояние выхода по умолчанию при включении устройства.">' +
+                    'd: Default state: ' + ports[args.pt].d + ' - ' + (ports[args.pt].d ? 'Порт выключен' : 'Порт включен') + '</p>';
+
+                var modes = [
+                    "0 - SW. Режим ключа. Состояние вкл/выкл",
+                    "1 - PWM. Режим ШИМ. (Данная опция доступна не для всех портов!)"
+                ];
+
+                text += '<p title="Режим работы выхода.">' +
+                    'm - Mode: ' + ports[args.pt].m + ' - ' + modes[ports[args.pt].m || 0] + '</p>';
+
+                text += '<p title="Значение ШИМ. В случае, если порт настроек как ШИМ. Значения от 0 до 255.">' +
+                    'pwm - ШИМ: ' + ports[args.pt].pwm + '</p>';
+            } else
+            // ADC (АЦП) ЦАП (для подключения аналоговых датчиков, данная опция доступна не для всех портов!)
+            if (ports[args.pt].pty == 2) {
                 if (args.m !== undefined) {
                     if (args.m == 0) {
                         console.log('Set new mode NORM for port ' + args.pt + ': ' + ports[args.pt].m + ' => ' + args.m);
@@ -260,7 +299,31 @@ function requestProcessor(req, res) {
                     console.log('Set new eth for port ' + args.pt + ': ' + ports[args.pt].eth + ' => ' + args.eth);
                     ports[args.pt].eth = args.eth;
                 }
-            } else  {
+
+                // show settings
+                text = '<p>P' + args.pt + ' - ADC</p>';
+                var modes = [
+                    "0 - Norm. Значения порта автоматически не отслеживаются",
+                    "1 - > Порт считается активным, если значение больше заданного порога. Активностью считается момент перехода через пороговое значение",
+                    "2 - < Порт считается активным, если значение меньше заданного порога. Активностью считается момент перехода через пороговое значение",
+                    "3 - <> Порт считается активным, если значение проходит порог как в меньшую, так и в большую сторону.",
+                ];
+
+                text += '<p title="Режим обработки изменений состояния порта">' +
+                    'm - Mode: ' + ports[args.pt].m + ' - ' + modes[ports[args.pt].m || 0] + '</p>';
+
+                text += '<p title="Пороговое значение">' +
+                    'misc: Val: ' + ports[args.pt].misc + '</p>';
+
+                text += '<p title="Сценарий по умолчанию, в котором задано управление Выходами (OUT) устройства в случае изменения состояния входа. (макс: 11 байт). Примечание. Сценарий выполняется всегда, если не указан сервер или если сервер указан, но не отвечает в течение 3 секунд. Сценарий по умолчанию не выполняется, если сервер указан и доступен.">' +
+                    'ecmd - Action: ' + ports[args.pt].ecmd + '</p>';
+
+                text += '<p title="URL, который вызывается устройством в случае изменения состояние входа (макс. 35 байт). Примечание. URL Net Action вызывается всегда, не зависимо от доступности сервера.">' +
+                    'eth - Net Action: ' + ports[args.pt].eth + '</p>';
+
+            }
+            // DSen. К порту подключен цифровой датчик
+            else if (ports[args.pt].pty == 3) {
                 if (args.m !== undefined) {
                     if (args.m == 0) {
                         console.log('Set new DHT type BASIC for port ' + args.pt + ': ' + ports[args.pt].m + ' => ' + args.m);
@@ -277,10 +340,25 @@ function requestProcessor(req, res) {
                         return;
                     }
                 }
+                // show settings
+                text = '<p>P' + args.pt + ' - ADC</p>';
+                var modes = [
+                    "0 - invalid",
+                    "1 - DHT11",
+                    "2 - DHT22"
+                ];
+
+                text += '<p title="Тип подключенного датчика">' +
+                    'm - Sensor: ' + ports[args.pt].m + ' - ' + modes[ports[args.pt].m || 0] + '</p>';
+            } else
+            // 255 - NC. Не сконфигурирован
+            {
+                text = '<p>P' + args.pt + ' - ADC</p>';
+                text += '255 - NC. Не сконфигурирован';
             }
             fs.writeFileSync(__dirname + '/config.json', JSON.stringify({config: config, ports: ports}, null, 2));
-            res.writeHead(200, {'Content-Type': 'text/plain'});
-            res.end('OK', 'utf8');
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.end(text, 'utf8');
         }
     } else
     if (args.cf) {

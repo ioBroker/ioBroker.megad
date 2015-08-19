@@ -130,18 +130,18 @@ function processMessage(message) {
 function detectPorts(obj) {
     var ip;
     var password;
-    if (typeof obj.message == 'object') {
+    if (obj && obj.message && typeof obj.message == 'object') {
         ip       = obj.message.ip;
         password = obj.message.password;
     } else {
-        ip       = obj.message;
+        ip       = obj ? obj.message : '';
         password = adapter.config.password;
     }
     if (ip && ip != '0.0.0.0') {
         getPortsState(ip, password, function (err, response) {
             var parts  = response.split(';');
             var result = [];
-            for (var port = 0; port < parts.length; port++) {
+            /*for (var port = 0; port < parts.length; port++) {
                 var type = 0;
                 var mode = 0;
                 var def  = 0;
@@ -178,8 +178,8 @@ function detectPorts(obj) {
                     mode: mode,
                     def:  def
                 });
-            }
-            if (obj.callback) adapter.sendTo(obj.from, obj.command, {error: err, response: result}, obj.callback);
+            }*/
+            if (obj.callback) adapter.sendTo(obj.from, obj.command, {error: err, response: response}, obj.callback);
         });
     } else {
         if (obj.callback) adapter.sendTo(obj.from, obj.command, {error: 'invalid address'}, obj.callback);
@@ -769,19 +769,21 @@ function syncObjects() {
 //    "cache":  false
 //}
 function main() {
-    if (adapter.config.port) {
-        server = require('http').createServer(restApi);
+    if (adapter.config.ip) {
+        if (adapter.config.port) {
+            server = require('http').createServer(restApi);
 
-        adapter.getPort(adapter.config.port, function (port) {
-            if (port != adapter.config.port && !adapter.config.findNextPort) {
-                adapter.log.warn('port ' + adapter.config.port + ' already in use');
-            } else {
-                server.listen(port);
-                adapter.log.info('http server listening on port ' + port);
-            }
-        });
-    } else {
-        adapter.log.info('No port specified');
+            adapter.getPort(adapter.config.port, function (port) {
+                if (port != adapter.config.port && !adapter.config.findNextPort) {
+                    adapter.log.warn('port ' + adapter.config.port + ' already in use');
+                } else {
+                    server.listen(port);
+                    adapter.log.info('http server listening on port ' + port);
+                }
+            });
+        } else {
+            adapter.log.info('No port specified');
+        }
     }
     syncObjects();
     adapter.subscribeStates('*');
