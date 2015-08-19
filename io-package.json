@@ -23,9 +23,9 @@
         "extIcon":                  "https://raw.githubusercontent.com/ioBroker/ioBroker.megad/master/admin/megad.png",
         "type":                     "hardware",
         "config": {
-            "width":     900,
+            "width":     1050,
             "height":    800,
-            "minWidth":  500,
+            "minWidth":  600,
             "minHeight": 500
         }
     },

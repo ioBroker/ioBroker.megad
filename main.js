@@ -91,6 +91,10 @@ adapter.on('message', function (obj) {
                 detectPorts(obj);
                 break;
 
+            case 'writeConfig':
+                writeConfig(obj);
+                break;
+
             default:
                 adapter.log.warn('Unknown message: ' + JSON.stringify(obj));
                 break;
@@ -123,6 +127,65 @@ function processMessage(message) {
             // Get value from analog port
             getPortState(port, processPortState);
         }
+    }
+}
+
+function writeConfigOne(ip, pass, port, settings, callback) {
+    var parts = ip.split(':');
+    var options = {
+        host: parts[0],
+        port: parts[1] || 80,
+        path: '/' + pass + '/?pt=' + port + '&'
+    };
+
+    // Input
+    if (settings.pty == 0) {
+
+    } else if (settings.pty == 1) {
+
+    } else if (settings.pty == 2) {
+
+    } else if (settings.pty == 3) {
+
+    } else {
+
+    }
+    http.get(options, function (res) {
+        var xmldata = '';
+
+        callback(res, port);
+    });
+}
+
+function writeConfig(obj) {
+    var ip;
+    var password;
+    var ports;
+    if (obj && obj.message && typeof obj.message == 'object') {
+        ip       = obj.message.ip;
+        password = obj.message.password;
+        ports    = obj.message.ports;
+    } else {
+        ip       = obj ? obj.message : '';
+        password = adapter.config.password;
+        ports    = adapter.config.ports;
+    }
+    var errors = [];
+    if (ip && ip != '0.0.0.0') {
+        var count = ports.length;
+        for (var p = 0; p < ports.length; p++) {
+            writeConfigOne(ip, password, p, ports[p], function (err, port) {
+                if (err) errors[port] = err;
+                if (!--count) {
+                    if (obj.callback) adapter.sendTo(obj.from, obj.command, {error: errors}, obj.callback);
+                }
+            });
+        }
+        if (!ports || !ports.length) {
+            if (obj.callback) adapter.sendTo(obj.from, obj.command, {error: 'no ports'}, obj.callback);
+        }
+    } else {
+        if (obj.callback) adapter.sendTo(obj.from, obj.command, {error: 'invalid address'}, obj.callback);
     }
 }
 
