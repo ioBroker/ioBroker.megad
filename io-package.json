@@ -1,7 +1,7 @@
 {
     "common": {
         "name":                     "megad",
-        "version":                  "0.1.2",
+        "version":                  "0.2.0",
         "title":                    "Mega-D Adapter",
         "desc":                     {
             "en": "Lets control the MegaD-328 over ethernet/internet (http://www.ab-log.ru/smart-house/ethernet/megad-328)",
@@ -19,13 +19,13 @@
         "messagebox":               true,
         "readme":                   "https://raw.githubusercontent.com/ioBroker/ioBroker.megad/master/README.md",
         "keywords":                 ["Mega-D", "communication"],
-		"enabled":                  false,
+		"enabled":                  true,
         "extIcon":                  "https://raw.githubusercontent.com/ioBroker/ioBroker.megad/master/admin/megad.png",
         "type":                     "hardware",
         "config": {
-            "width":     900,
+            "width":     1050,
             "height":    800,
-            "minWidth":  500,
+            "minWidth":  600,
             "minHeight": 500
         }
     },
@@ -35,168 +35,8 @@
         "port":                     80,
         "pollInterval":             30,
         "password":                 "sec",
-        "longPress":                400,
-        "ports": [
-            {
-                "name":    "port0",
-                "input":   true,
-                "switch":  true,
-                "offset":  0,
-                "factor":  1,
-                "digital": false,
-                "long":    false,
-                "double":  0
-            },
-            {
-                "name":    "port1",
-                "input":   true,
-                "switch":  true,
-                "offset":  0,
-                "factor":  1,
-                "digital": false,
-                "long":    false,
-                "double":  0
-            },
-            {
-                "name":    "port2",
-                "input":   true,
-                "switch":  true,
-                "offset":  0,
-                "factor":  1,
-                "digital": false,
-                "long":    false,
-                "double":  0
-            },
-            {
-                "name":    "port3",
-                "input":   true,
-                "switch":  true,
-                "offset":  0,
-                "factor":  1,
-                "digital": false,
-                "long":    false,
-                "double":  0
-            },
-            {
-                "name":    "port4",
-                "input":   true,
-                "switch":  true,
-                "offset":  0,
-                "factor":  1,
-                "digital": false,
-                "long":    false,
-                "double":  0
-            },
-            {
-                "name":    "port5",
-                "input":   true,
-                "switch":  true,
-                "offset":  0,
-                "factor":  1,
-                "digital": false,
-                "long":    false,
-                "double":  0
-            },
-            {
-                "name":    "port6",
-                "input":   true,
-                "switch":  true,
-                "offset":  0,
-                "factor":  1,
-                "digital": false,
-                "long":    false,
-                "double":  0
-            },
-            {
-                "name":    "port7",
-                "input":   false,
-                "switch":  false,
-                "offset":  0,
-                "factor":  1,
-                "digital": true,
-                "long":    false,
-                "double":  0
-            },
-            {
-                "name":    "port8",
-                "input":   false,
-                "switch":  false,
-                "offset":  0,
-                "factor":  1,
-                "digital": true,
-                "long":    false,
-                "double":  0
-            },
-            {
-                "name":    "port9",
-                "input":   false,
-                "switch":  false,
-                "offset":  0,
-                "factor":  1,
-                "digital": true,
-                "long":    false,
-                "double":  0
-            },
-            {
-                "name":    "port10",
-                "input":   false,
-                "switch":  false,
-                "offset":  0,
-                "factor":  1,
-                "digital": true,
-                "long":    false,
-                "double":  0
-            },
-            {
-                "name":    "port11",
-                "input":   false,
-                "switch":  false,
-                "offset":  0,
-                "factor":  1,
-                "digital": true,
-                "long":    false,
-                "double":  0
-            },
-            {
-                "name":    "port12",
-                "input":   false,
-                "switch":  false,
-                "offset":  0,
-                "factor":  1,
-                "digital": true,
-                "long":    false,
-                "double":  0
-            },
-            {
-                "name":    "port13",
-                "input":   false,
-                "switch":  false,
-                "offset":  0,
-                "factor":  1,
-                "digital": true,
-                "long":    false,
-                "double":  0
-            },
-            {
-                "name":    "port14",
-                "input":   false,
-                "switch":  false,
-                "offset":  0,
-                "factor":  1,
-                "digital": true,
-                "long":    false,
-                "double":  0
-            },
-            {
-                "name":    "port15",
-                "input":   false,
-                "switch":  false,
-                "offset":  0,
-                "factor":  1,
-                "digital": true,
-                "long":    false,
-                "double":  0
-            }
-        ]
+        "longPress":                700,
+        "doublePress":              600,
+        "ports":                    []
     }
 }
