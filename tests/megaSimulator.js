@@ -116,9 +116,9 @@ var ports = [
 
 function getState(port) {
     if (ports[port].pty == 0) {
-        return ports[port].value ? 'ON' : 'OFF';
+        return (ports[port].value ? 'ON' : 'OFF') + '/' + (ports[port].counter || 0);
     } else if (ports[port].pty == 1) {
-        return (ports[port].value ? 'ON' : 'OFF') + '/' + ports[port].d;
+        return (ports[port].value ? 'ON' : 'OFF');
     } else if (ports[port].pty == 2) {
         return (ports[port].value || 0);
     } else if (ports[port].pty == 3 && ports[port].m == 0) {
@@ -138,7 +138,7 @@ function trigger(port) {
     var options = {
         host: parts[0],
         port: parts[1] || 80,
-        path: config.sct + port
+        path: config.sct + '?pt=' + port
     };
 
     console.log(JSON.stringify(options));
@@ -178,9 +178,7 @@ function requestProcessor(req, res) {
         return;
     }
     if (!parts[2] || parts[2][0] != '?') {
-        res.writeHead(500, {'Content-Type': 'text/html'});
-        res.end('No query found: ' + parts[2], 'utf8');
-        return;
+        parts[2] = '';
     } else {
         parts[2] = parts[2].substring(1);
     }
@@ -196,9 +194,6 @@ function requestProcessor(req, res) {
         if (!ports[args.pn]) {
             res.writeHead(500, {'Content-Type': 'text/html'});
             res.end('Invalid port: ' + args.pn, 'utf8');
-
-            res.writeHead(200, {'Content-Type': 'text/html'});
-            res.end(text, 'utf8');
         } else {
             var text = 'OK';
             if (args.pty !== undefined) {
@@ -396,6 +391,19 @@ function requestProcessor(req, res) {
         }
     } else
     if (args.cf !== undefined) {
+        if (args.cf == 2) {
+            var text = '<a href=/sec>Back</a> | ' +
+                '<a href=/sec/?cf=1>Config</a><br>' +
+                '<form action=/sec/><input type=hidden name=cf value=2>' +
+                'Megad-ID: <input name=mdid maxlength=5 size=5 value=""><br>' +
+                'srv loop: <input type=checkbox name=sl value=1><br>' +
+                '<input type=submit value=Save></form>';
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.end(text, 'utf8');
+            return;
+        }
+
+
         if (args.cf != 1) {
             res.writeHead(500, {'Content-Type': 'text/html'});
             res.end('Invalid config mode: ' + args.cf, 'utf8');
@@ -441,9 +449,23 @@ function requestProcessor(req, res) {
             config.eip = args.eip;
         }
         fs.writeFileSync(__dirname + '/config.json', JSON.stringify({config: config, ports: ports}, null, 2));
+        var text = '<a href=/sec>Back</a> | <a href=/sec/?cf=2>' +
+            'Megad-ID</a><br><form action=/sec/>' +
+            '<input type=hidden name=cf value=1>' +
+            'IP: <input name=eip value=' + config.eip + '><br>' +
+            'Pwd: <input name=pwd maxlength=3 value="' + config.pwd + '"><br>' +
+            'GW: <input name=gw value=255.255.255.255><br>' +
+            'SRV: <input name=sip value=' + config.sip + '><br>' +
+            'Script: <input name=sct maxlength=15 value="' + config.sct + '"><br>' +
+            'Preset: <select name=pr><option value=0' + (config.pr == 0 ? ' selected' : '') + '>Norm</option><option value=1' + (config.pr == 1 ? ' selected' : '') + '>7I7O</option></select><br>' +
+            'T check: <input type=checkbox name=tc value=1' + (config.tc ? ' checked' : '') + '><br>' +
+            'Alarm T: <input name=at size=3 maxlength=3 value=' + (config.at || '') + '><br>' +
+            'Cur T: 37<br><input type=submit value=Save></form>';
+
         res.writeHead(200, {'Content-Type': 'text/html'});
-        res.end('OK', 'utf8');
-    } else if (args.cmd !== undefined) {
+        res.end(text, 'utf8');
+    } else
+    if (args.cmd !== undefined) {
         if (args.cmd == 'get') {
             if (!ports[args.pt]) {
                 res.writeHead(500, {'Content-Type': 'text/html'});
@@ -491,7 +513,8 @@ function requestProcessor(req, res) {
                 res.end('Invalid cmd: ' + args.cmd, 'utf8');
             }
         }
-    } else if (args.tget !== undefined) {
+    } else
+    if (args.tget !== undefined) {
         if (args.tget == 1) {
             res.writeHead(200, {'Content-Type': 'text/html'});
             res.end((Math.random() * 30).toFixed(1), 'utf8');
@@ -499,9 +522,85 @@ function requestProcessor(req, res) {
             res.writeHead(500, {'Content-Type': 'text/html'});
             res.end('Unknown tget request: ' + args.tget, 'utf8');
         }
-    } else {
-        res.writeHead(500, {'Content-Type': 'text/html'});
-        res.end('Unknown command', 'utf8');
+    } else if(args.pt !== undefined) {
+        if (!ports[args.pt]) {
+            res.writeHead(500, {'Content-Type': 'text/html'});
+            res.end('Invalid port: ' + args.pt, 'utf8');
+        } else {
+            var text = '';
+            if (ports[args.pt].pty == 0) {
+                text = '<a href=/sec>Back</a><br>' +
+                    'P' + args.pt + '/' + (ports[args.pt].value ? 'ON' : 'OFF') + '/' + (ports[args.pt].counter || 0) +
+                    '<form action=/sec/>' +
+                    '<input type=hidden name=pn value=' + args.pt + '>' +
+                    'Type In<br>' +
+                    'Act <input name=ecmd value="' + (ports[args.pt].ecmd || '') + '"><br>' +
+                    'Net <input size=30 name=eth value="' + (ports[args.pt].eth || '') + '"> ' +
+                    '<input type=checkbox name=naf value=1' + (ports[args.pt].naf ? ' checked' : '') + '><br>' +
+                    'Mode <select name=m><option value=0' + ((ports[args.pt].m == 0) ? ' selected' : '') + '>P</option><option value=1' + ((ports[args.pt].m == 1) ? ' selected' : '') + '>P&R</option><option value=2' + ((ports[args.pt].m == 2) ? ' selected' : '') + '>R</option></select> ' +
+                    '<input type=checkbox name=misc value=1' + (ports[args.pt].misc ? ' checked' : '') + '><br>' +
+                    'Raw <input type=checkbox name=d value=1' + (ports[args.pt].d ? ' checked' : '') + '><br>' +
+                    '<input type=submit value=Save></form>';
+            } else if (ports[args.pt].pty == 1) {
+                text = '<a href=/sec>Back</a><br>' +
+                    'P' + args.pt + '/' + (ports[args.pt].value ? 'ON' : 'OFF') + '<br>' +
+                    '<a href=/sec/?pt=' + args.pt + '&cmd=' + args.pt + ':1>ON</a> ' +
+                    '<a href=/sec/?pt=' + args.pt + '&cmd=' + args.pt + ':0>OFF</a><br>' +
+                    '<form action=/sec/>' +
+                    '<input type=hidden name=pn value=' + args.pt + '>Type Out<br>' +
+                    'Default: <select name=d><option value=0' + ((ports[args.pt].d == 0) ? ' selected' : '') + '>0</option><option value=1' + ((ports[args.pt].d == 1) ? ' selected' : '') + '>1</option></select><br>' +
+                    'Mode: <select name=m><option value=0' + ((ports[args.pt].m == 0) ? ' selected' : '') + '>SW</option><option value=1' + ((ports[args.pt].m == 1) ? ' selected' : '') + '>PWM</option></select><br>' +
+                    'PWM: <input name=pwm value=' + (ports[args.pt].pwm == 0) + '><br>' +
+                    '<input type=submit value=Save></form>';
+            } else if (ports[args.pt].pty == 2) {
+                text = '<a href=/sec>Back</a><br>' +
+                    'A' + args.pt + '/' + ports[args.pt].value +
+                    '<form action=/sec/>' +
+                    '<input type=hidden name=pn value=' + args.pt + '>' +
+                    'Mode <select name=m><option value=0' + ((ports[args.pt].m == 0) ? ' selected' : '') + '>Norm</option><option value=1' + ((ports[args.pt].m == 1) ? ' selected' : '') + '>></option><option value=2' + ((ports[args.pt].m == 2) ? ' selected' : '') + '><</option><option value=3' + ((ports[args.pt].m == 3) ? ' selected' : '') + '><></option></select><br>' +
+                    'Val <input name=misc size=4 value=' + (ports[args.pt].misc || 0) + '><br>' +
+                    'Act <input name=ecmd value="' + (ports[args.pt].ecmd || '') + '"><br>' +
+                    'Net <input size=30 name=eth value="' + (ports[args.pt].eth || '') + '"> ' +
+                    '<input type=checkbox name=naf value=1' + (ports[args.pt].naf ? ' checked' : '') + '><br>' +
+                    '<input type=submit value=Save></form>';
+            } else if (ports[args.pt].pty == 3) {
+                text = '<a href=/sec>Back</a><br>' +
+                    'P' + args.pt + '<br>temp:' + (ports[args.pt].value || 0) + '<br>hum:' + (ports[args.pt].hum || 0) +
+                    '<form action=/sec/><input type=hidden name=pn value=' + args.pt + '>' +
+                    'Type <select name=pty><option value=255' + ((ports[args.pt].pty == 255) ? ' selected' : '') + '>NC</option><option value=0' + ((ports[args.pt].pty == 0) ? ' selected' : '') + '>In</option><option value=1' + ((ports[args.pt].pty == 1) ? ' selected' : '') + '>Out</option><option value=3' + ((ports[args.pt].pty == 3) ? ' selected' : '') + '>DSen</option><option value=2' + ((ports[args.pt].pty == 2) ? ' selected' : '') + '>ADC</option></select><br>' +
+                    'Sensor: <select name=m><option value=1' + ((ports[args.pt].m == 1) ? ' selected' : '') + '>DHT11</option><option value=2' + ((ports[args.pt].m == 2) ? ' selected' : '') + '>DHT22</option></select><br>' +
+                    '<input type=submit value=Save></form>';
+            } else  {
+                text = '<a href=/sec>Back</a><br>' +
+                    'P' + args.pt + '<form action=/sec/><input type=hidden name=pn value=' + args.pt + '>' +
+                    'Type <select name=pty><option value=255' + ((ports[args.pt].pty == 255) ? ' selected' : '') + '>NC</option><option value=0' + ((ports[args.pt].pty == 0) ? ' selected' : '') + '>In</option><option value=1' + ((ports[args.pt].pty == 1) ? ' selected' : '') + '>Out</option><option value=3' + ((ports[args.pt].pty == 3) ? ' selected' : '') + '>DSen</option><option value=2' + ((ports[args.pt].pty == 2) ? ' selected' : '') + '>ADC</option></select><br>' +
+                    '<input type=submit value=Save></form>';
+            }
+        }
+        res.writeHead(200, {'Content-Type': 'text/html'});
+        res.end(text, 'utf8');
+    }
+    else {
+        var text = 'MegaD-328 by <a href=http://ab-log.ru>ab-log.ru</a> (fw: 3.30b5)<br>' +
+            '<a href=/sec/?cf=1>Config</a><br>--Ports--<br>';
+        var type = '';
+        for (var p = 0; p < ports.length; p++) {
+            if (ports[p].pty == 0) {
+                type = 'IN';
+            } else if (ports[p].pty == 1) {
+                type = 'OUT';
+            } else if (ports[p].pty == 2) {
+                type = 'ADC';
+            } else if (ports[p].pty == 3) {
+                type = 'Digital';
+            } else {
+                type = 'NC';
+            }
+            //<a href=/sec/?pt=0>P0 - IN
+            text += '<a href=/sec/?pt=' + p + '>' + ((ports[p].pty == 2) ? 'A' : 'P') + p + ' - ' + type + '</a><br>';
+        }
+        res.writeHead(200, {'Content-Type': 'text/html'});
+        res.end(text, 'utf8');
     }
 
     //http://192.168.0.250/megad.php?pt=5
@@ -539,8 +638,10 @@ function main() {
                 console.log(port);
                 if (ports[port].pty == 0) {
                     print = true;
-                    ports[port].value = ports[port].value || 0;
-                    ports[port].value = !ports[port].value;
+                    ports[port].value   = ports[port].value || 0;
+                    ports[port].counter = ports[port].counter || 0;
+                    ports[port].value   = !ports[port].value;
+                    ports[port].counter++;
                     if ((ports[port].m == 0 && ports[port].value) || (ports[port].m == 2 && !ports[port].value) || ports[port].m == 1)
                     trigger(port);
                 } else

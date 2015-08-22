@@ -129,6 +129,7 @@
         text += '<option value="1" '   + ((portSettings.pty == 1)   ? 'selected' : '') + '>' + _('Output') + '</option>';
         text += '<option value="2" '   + ((portSettings.pty == 2)   ? 'selected' : '') + '>' + _('ADC') + '</option>';
         text += '<option value="3" '   + ((portSettings.pty == 3)   ? 'selected' : '') + '>' + _('Digital Sensor') + '</option>';
+        text += '<option value="4" '   + ((portSettings.pty == 4)   ? 'selected' : '') + '>' + _('Internal Sensor') + '</option>';
         '</td>';
 
         // mode
@@ -182,9 +183,9 @@
         // ecmd(Action) and eth(net action)
         if (portSettings.pty == 0 || portSettings.pty == 2) {
             // ecmd(Action)
-            text += _('Action:') + ' <input class="tvalue" data-type="ecmd" type="text" data-port="' + index + '" value="' + portSettings.ecmd + '"  style="width: 70px" maxsize="11"/>, ';
+            text += _('Action:') + ' <input class="tvalue" data-type="ecmd" type="text" data-port="' + index + '" value="' + portSettings.ecmd + '"  style="width: 70px" maxsize="11"/>';
             // eth(net action)
-            text += _('Net:') + ' <input class="tvalue" data-type="eth" type="text" data-port="' + index + '" value="' + portSettings.eth  + '" style="width: 70px" maxsize="35"/>';
+            //text += _('Net:') + ' <input class="tvalue" data-type="eth" type="text" data-port="' + index + '" value="' + portSettings.eth  + '" style="width: 70px" maxsize="35"/>';
         }
 
         //d(default state)
@@ -238,13 +239,14 @@
                 // m: 0 - on close, 1 - on change, 2 - on open
                 if (ports[index].factor !== undefined) delete ports[index].factor;
                 if (ports[index].offset !== undefined) delete ports[index].offset;
-                if (ports[index].long   === undefined) ports[index].long = false;
-                if (ports[index].double === undefined) ports[index].double = false;
+                if (ports[index].long   === undefined) ports[index].long   = true;
+                if (ports[index].double === undefined) ports[index].double = true;
 
                 if (ports[index].eth    === undefined) ports[index].eth = '';
                 if (ports[index].ecmd   === undefined) ports[index].ecmd = '';
                 if (ports[index].d      !== undefined) delete ports[index].d;
                 if (ports[index].misc   !== undefined) delete ports[index].misc;
+                if (ports[index].m      === undefined) ports[index].m = 0;
                 if (ports[index].m > 2) ports[index].m = 0;
 
                 if (ports[index].m != 1) ports[index].long = false;
@@ -259,6 +261,7 @@
                 if (ports[index].ecmd   !== undefined) delete ports[index].ecmd;
                 if (ports[index].d      === undefined) ports[index].d = 0;
                 if (ports[index].misc   !== undefined) delete ports[index].misc;
+                if (ports[index].m      === undefined) ports[index].m = 0;
                 if (ports[index].m > 1) ports[index].m = 0;
             } else
             if (ports[index].pty == 2) {
@@ -271,6 +274,7 @@
                 if (ports[index].ecmd   === undefined) ports[index].ecmd = '';
                 if (ports[index].d      !== undefined) delete ports[index].d;
                 if (ports[index].misc   === undefined) ports[index].misc = 0;
+                if (ports[index].m      === undefined) ports[index].m = 0;
             } else
             if (ports[index].pty == 3) {
                 if (ports[index].factor !== undefined) delete ports[index].factor;
@@ -282,6 +286,7 @@
                 if (ports[index].ecmd   === undefined) ports[index].ecmd = '';
                 if (ports[index].d      !== undefined) delete ports[index].d;
                 if (ports[index].misc   === undefined) ports[index].misc = 0;
+                if (ports[index].m      === undefined) ports[index].m = 0;
                 if (ports[index].m > 2) ports[index].m = 1;
             } else {
                 if (ports[index].factor !== undefined) delete ports[index].factor;
@@ -293,6 +298,7 @@
                 if (ports[index].ecmd   !== undefined) delete ports[index].ecmd;
                 if (ports[index].d      !== undefined) delete ports[index].d;
                 if (ports[index].misc   !== undefined) delete ports[index].misc;
+                if (ports[index].m      !== undefined) delete ports[index].m;
             }
 
             showPorts();
@@ -420,24 +426,11 @@
             writeConfig($('#ip').val(), $('#password').val(), port, ports);
         });
 
-        $('#ip').change(function () {
-            var val = $(this).val();
-            if (!val || val == '0.0.0.0') {
-                $('#autoDetect').button('disable');
-                $('#write').button('disable');
-            } else {
-                $('#autoDetect').button('enable');
-                $('#write').button('enable');
-            }
-        }).keyup(function () {
-            $(this).trigger('change');
-        }).trigger('change');
-
-        onChange(false);
         onchange = onChange;
 
         readRooms();
 
+        // read if instance is active or enabled
         socket.emit('getState', 'system.adapter.' + adapter + '.' + instance + '.alive', function (err, state) {
             active = common.enabled || (state && state.val);
         });
@@ -527,6 +520,22 @@
                 ]
             });
         });
+
+        $('#ip').change(function () {
+            var val = $(this).val();
+            if (!val || val == '0.0.0.0') {
+                $('#autoDetect').button('disable');
+                $('#write').button('disable');
+                $('#ipchange').button('disable');
+            } else {
+                $('#autoDetect').button('enable');
+                $('#write').button('enable');
+                $('#ipchange').button('enable');
+            }
+        }).keyup(function () {
+            $(this).trigger('change');
+        }).trigger('change');
+        onChange(false);
     }
 
     // ... and the function save has to exist.
@@ -559,59 +568,69 @@
 
             $('#write').button('disable');
             $('#autoDetect').button('disable');
+            $('#ipchange').button('disable');
 
             sendTo(null, 'detectPorts', {ip: ip, password: pass}, function (msg) {
 
                 $('#write').button('enable');
                 $('#autoDetect').button('enable');
+                $('#ipchange').button('enable');
 
-                if (!msg || msg.err) {
-                    showMessage(msg.err, _('Error'), 'alert');
+                if (!msg || msg.error) {
+                    showMessage(msg.error, _('Error'), 'alert');
                     return;
                 }
                 //OFF;OFF/0;OFF/0;25;temp:45.6;temp:45.6/hum:27
                 var _ports = msg.response.split(';');
+                var settingsPorts =  msg.ports || [];
                 var aPorts = [];
                 for (var p = 0; p < _ports.length; p++) {
-                    aPorts[p] = {};
+                    aPorts[p] = settingsPorts[p] || {};
+
+                    if (aPorts[p].pn !== undefined) delete aPorts[p].pn;
+
                     ports[p] = ports[p] || {};
-                    if (_ports[p] == 'OFF' || _ports[p] == 'ON') {
+                    if (aPorts[p].pty == 0) {
                         // input digital port
-                        aPorts[p].pty     = 0;
-                        aPorts[p].name    = ports[p].name || ('P' + p);
-                        aPorts[p].ecmd    = ports[p].ecmd || '';
-                        aPorts[p].eth     = ports[p].eth  || '';
-                        aPorts[p].m       = ports[p].m    || 0;
+                        aPorts[p].name    = ports[p].name  || ('P' + p);
+                        aPorts[p].ecmd    = aPorts[p].ecmd || '';
+                        aPorts[p].eth     = aPorts[p].eth  || '';
+                        aPorts[p].m       = aPorts[p].m    || 0;
 
                         aPorts[p].long    = !!ports[p].long;
                         aPorts[p].double  = !!ports[p].double;
                         aPorts[p].role    = ports[p].role || 'state';
-                    } else if (_ports[p] == 'OFF/0' || _ports[p] == 'ON/1') {
+                    } else
+                    if (aPorts[p].pty == 1) {
                         // output digital port
-                        aPorts[p].pty     = 1;
                         aPorts[p].name    = ports[p].name || ('P' + p);
-                        aPorts[p].m       = ports[p].m    || 0;
+                        aPorts[p].m       = aPorts[p].m   || 0;
                         aPorts[p].d       = ports[p].d    || 0;
                         aPorts[p].pwm     = ports[p].pwm  || 0;
 
                         aPorts[p].role    = ports[p].role || 'state';
-                    } else if (parseInt(_ports[p], 10).toString() == _ports[p]) {
+                    } else
+                    if (aPorts[p].pty == 2) {
                         // ADC port
-                        aPorts[p].pty     = 2;
-                        aPorts[p].name    = ports[p].name || ('P' + p);
-                        aPorts[p].ecmd    = ports[p].ecmd || '';
-                        aPorts[p].eth     = ports[p].eth  || '';
-                        aPorts[p].m       = ports[p].m    || 0;
-                        aPorts[p].misc    = ports[p].misc || 0;
+                        aPorts[p].name    = ports[p].name  || ('P' + p);
+                        aPorts[p].ecmd    = aPorts[p].ecmd || '';
+                        aPorts[p].eth     = aPorts[p].eth  || '';
+                        aPorts[p].m       = aPorts[p].m    || 0;
+                        aPorts[p].misc    = aPorts[p].misc || 0;
 
                         aPorts[p].offset  = ports[p].offset || 0;
                         aPorts[p].factor  = ports[p].factor || 1;
-                        aPorts[p].role    = ports[p].role || 'value';
-                    } else if (_ports[p].indexOf('temp') != -1) {
+                        aPorts[p].role    = ports[p].role   || 'value';
+                    } else
+                    if (aPorts[p].pty == 3) {
                         // temperature - digital sensor
-                        aPorts[p].pty     = 3;
                         aPorts[p].name    = ports[p].name || ('P' + p);
-                        aPorts[p].m       = _ports[p].indexOf('hum') != -1 ? 1 : 0;
+                        aPorts[p].m       = aPorts[p].m || _ports[p].indexOf('hum') != -1 ? 1 : 0;
+                        aPorts[p].role    = ports[p].role || 'value.temperature';
+                    } else if (_ports[p].indexOf('temp:') != -1) {
+                        // temperature - internal sensor
+                        aPorts[p].pty     = 4;
+                        aPorts[p].name    = ports[p].name || ('P' + p);
                         aPorts[p].role    = ports[p].role || 'value.temperature';
                     } else {
                         // unknown settings
@@ -663,8 +682,6 @@
                 $('#save').button('disable');
                 $('#saveclose').button('disable');
                 $('#close .ui-button-text').html(_('close'));
-
-                if (callback) callback();
             });
         });
     }
@@ -686,11 +703,13 @@
 
         $('#write').button('disable');
         $('#autoDetect').button('disable');
+        $('#ipchange').button('disable');
 
         sendTo(null, 'writeConfig', {ip: ip, password: pass, ports: ports, config: config}, function (msg) {
 
             $('#write').button('enable');
             $('#autoDetect').button('enable');
+            $('#ipchange').button('enable');
 
             if (callback) return callback(msg ? msg.error : null);
 

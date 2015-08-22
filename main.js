@@ -152,7 +152,9 @@ function writeConfigOne(ip, pass, _settings, callback, port, errors) {
 
     // Input
     if (settings.pty == 0) {
-        options.path += '&pty=0&m=' + settings.m + '&ecmd=' + encodeURIComponent(settings.ecmd.trim()) + '&eth=' + encodeURIComponent(settings.eth.trim());
+        settings.ecmd = settings.ecmd || '';
+        settings.eth  = '';//settings.eth  || '';
+        options.path += '&pty=0&m=' + settings.m + '&ecmd=' + encodeURIComponent(settings.ecmd.trim()) + '&eth=';
     } else
     if (settings.pty == 1) {
         settings.pwm = parseInt(settings.pwm, 10) || 0;
@@ -161,19 +163,32 @@ function writeConfigOne(ip, pass, _settings, callback, port, errors) {
 
         // digital out
         options.path += '&pty=1&m=' + settings.m + '&d=' + settings.d + '&pwm=' + settings.pwm;
-    } else if (settings.pty == 2) {
+    } else
+    if (settings.pty == 2) {
         settings.misc = parseInt(settings.misc, 10) || 0;
         if (settings.misc > 255) settings.misc = 255;
         if (settings.misc < 0)   settings.misc = 0;
         // ADC
-        options.path += '&pty=2&m=' + settings.m + '&misc=' + settings.misc + '&ecmd=' + encodeURIComponent(settings.ecmd.trim()) + '&eth=' + encodeURIComponent(settings.eth.trim());
-    } else if (settings.pty == 3) {
+        settings.ecmd = settings.ecmd || '';
+        settings.eth  = ''; //settings.eth  || '';
+        options.path += '&pty=2&m=' + settings.m + '&misc=' + settings.misc + '&ecmd=' + encodeURIComponent(settings.ecmd.trim()) + '&eth=';
+    } else
+    if (settings.pty == 3) {
         // digital sensor
         options.path += '&pty=3&m=' + settings.m;
+    } else
+    if (settings.pty == 4) {
+        adapter.log.info('Do not configure internal temperature port ' + config.port);
+        return writeConfigOne(ip, pass, _settings, callback, port, errors);
     } else {
         // NC
         options.path += '&pty=255';
     }
+
+
+    // If internal temperature
+
+
     adapter.log.info('Write config for port ' + port + ': http://' + ip + options.path);
 
     http.get(options, function (res) {
@@ -190,12 +205,16 @@ function writeConfigOne(ip, pass, _settings, callback, port, errors) {
             }
 
             if (res.statusCode != 200) errors[port] = res.statusCode;
-            writeConfigOne(ip, pass, _settings, callback, port, errors);
+
+            setTimeout(function () {
+                writeConfigOne(ip, pass, _settings, callback, port, errors);
+            }, 1000);
         });
     }).on('error', function (err) {
         errors[port] = err;
-        writeConfigOne(ip, pass, _settings, callback, port, errors);
-    });
+        setTimeout(function () {
+            writeConfigOne(ip, pass, _settings, callback, port, errors);
+        }, 1000);    });
 }
 
 function ipToBuffer (ip, buff, offset) {
@@ -307,7 +326,20 @@ function findIp(ip) {
         for (var k2 in interfaces[k]) {
             var address = interfaces[k][k2];
             if (address.family === 'IPv4' && !address.internal && address.address) {
-                if (ipMask(address.address, address.netmask) == ipMask(ip, address.netmask)) {
+
+                // Detect default subnet mask
+                var num = parseInt(address.address.split('.')[0], 10);
+                var netMask;
+                if (num >= 192) {
+                    netMask = '255.255.255.0';
+                } else
+                if (num >= 128) {
+                    netMask = '255.255.0.0';
+                } else {
+                    netMask = '255.0.0.0';
+                }
+
+                if (ipMask(address.address, netMask) == ipMask(ip, netMask)) {
                     return address.address;
                 }
             }
@@ -341,7 +373,7 @@ function writeConfigDevice(ip, pass, config, callback) {
             return callback('Device with "' + ip + '" is not reachable from ioBroker.');
         }
         options.path += '&sip=' + sip + (config.port ? ':' + config.port : '');
-        options.path += '&sct=' + encodeURIComponent('/' + adapter.instance + '/?pt=');
+        options.path += '&sct=' + encodeURIComponent('/' + adapter.instance + '/');
     }
 
     adapter.log.info('Write config for device: http://' + ip + options.path);
@@ -388,15 +420,17 @@ function writeConfig(obj) {
         if (ports && ports.length) {
             running = true;
             writeConfigOne(ip, password, ports, function (err, port) {
-                if (err) errors[port] = err;
-                if (config) {
-                    writeConfigDevice(ip, password, config, function (err) {
-                        if (err) errors[20] = err;
+                setTimeout(function () {
+                    if (err) errors[port] = err;
+                    if (config) {
+                        writeConfigDevice(ip, password, config, function (err) {
+                            if (err) errors[20] = err;
+                            if (obj.callback) adapter.sendTo(obj.from, obj.command, {error: errors}, obj.callback);
+                        });
+                    } else {
                         if (obj.callback) adapter.sendTo(obj.from, obj.command, {error: errors}, obj.callback);
-                    });
-                } else {
-                    if (obj.callback) adapter.sendTo(obj.from, obj.command, {error: errors}, obj.callback);
-                }
+                    }
+                }, 1000)
             });
         } else if (config) {
             running = true;
@@ -414,6 +448,180 @@ function writeConfig(obj) {
     }
 }
 
+function detectPortConfig(ip, pass, length, callback, port, result) {
+    if (port === undefined) {
+        port = 0;
+        result = [];
+    } else {
+        port++;
+        if (port >= length) {
+            return callback(result);
+        }
+    }
+
+    var parts = ip.split(':');
+    var options = {
+        host: parts[0],
+        port: parts[1] || 80,
+        path: '/' + pass + '/?pt=' + port
+    };
+
+    adapter.log.info('read config from port: http://' + ip + options.path);
+
+    http.get(options, function (res) {
+        res.setEncoding('utf8');
+        var data = '';
+        res.on('data', function (chunk) {
+            data += chunk;
+        });
+
+        res.on('end', function () {
+            if (res.statusCode != 200) {
+                adapter.log.warn('Response code: ' + res.statusCode + ' - ' + data);
+            } else {
+                var settings = {};
+                // Analyse answer
+                var inputs = data.match(/<input [^>]+>/g);
+                var i;
+
+                if (inputs) {
+                    for (i = 0; i < inputs.length; i++) {
+                        var args = inputs[i].match(/(\w+)=([^<> ]+)/g);
+                        if (args) {
+                            var isettings = {};
+                            for (var a = 0; a < args.length; a++) {
+                                var parts = args[a].split('=');
+                                isettings[parts[0]] = parts[1].replace(/^"/, '').replace(/"$/, '');
+                            }
+
+                            if (isettings.name) {
+                                settings[isettings.name] = (isettings.value === undefined) ? '' : isettings.value;
+                                if (isettings.type == 'checkbox' && inputs[i].indexOf('checked') == -1) {
+                                    settings[isettings.name] = (!settings[isettings.name]) ? 1 : 0;
+                                }
+                            }
+                        }
+                    }
+                }
+                inputs = data.match(/<select .+?<\/select>/g);
+                if (inputs) {
+                    for (i = 0; i < inputs.length; i++) {
+                        var name = inputs[i].match(/name=(\w+)/);
+                        if (name) {
+                            var vars = inputs[i].match(/<option value=(\d+) selected>/);
+                            if (vars) {
+                                settings[name[1]] = vars[1];
+                            } else {
+                                settings[name[1]] = 0;
+                            }
+                        }
+                    }
+                }
+
+                if (settings.pty === undefined) {
+                    if (data.indexOf('>Type In<') != -1) {
+                        settings.pty = 0;
+                    } else if (data.indexOf('>Type Out<') != -1) {
+                        settings.pty = 1;
+                    } else if (data.match(/<br>A\d+\//)) {
+                        settings.pty = 2;
+                    }
+                } else {
+                    settings.pty = parseInt(settings.pty, 10);
+                }
+
+                if (settings.pty == 1) {
+                    settings.m   = settings.m   || 0;
+                    settings.pwm = settings.pwm || 0
+                }
+                if (settings.m    !== undefined) settings.m    = parseInt(settings.m,    10);
+                if (settings.d    !== undefined) settings.d    = parseInt(settings.d,    10);
+                if (settings.misc !== undefined) settings.misc = parseInt(settings.misc, 10);
+                if (settings.pwm  !== undefined) settings.pwm  = parseInt(settings.pwm,  10);
+                if (settings.pn   !== undefined) settings.pn   = parseInt(settings.pn,   10);
+                if (settings.naf  !== undefined) settings.naf  = parseInt(settings.naf,  10);
+
+
+                result[port] = settings;
+                adapter.log.debug('Response: ' + data);
+            }
+            detectPortConfig(ip, pass, length, callback, port, result);
+        });
+    }).on('error', function (err) {
+        adapter.log.error(err.message);
+        detectPortConfig(ip, pass, length, callback, port, result);
+    });
+}
+
+function detectDeviceConfig(ip, pass, callback) {
+    var parts = ip.split(':');
+    var options = {
+        host: parts[0],
+        port: parts[1] || 80,
+        path: '/' + pass + '/?cf=1'
+    };
+
+    adapter.log.info('read config from port: http://' + ip + options.path);
+
+    http.get(options, function (res) {
+        res.setEncoding('utf8');
+        var data = '';
+        res.on('data', function (chunk) {
+            data += chunk;
+        });
+
+        res.on('end', function () {
+            if (res.statusCode != 200) {
+                adapter.log.warn('Response code: ' + res.statusCode + ' - ' + data);
+            } else {
+                // parse config
+                // Analyse answer
+                var inputs = data.match(/<input [^>]+>/g);
+                var i;
+                var settings = {};
+
+                if (inputs) {
+                    for (i = 0; i < inputs.length; i++) {
+                        var args = inputs[i].match(/(\w+)=([^<> ]+)/g);
+                        if (args) {
+                            var isettings = {};
+                            for (var a = 0; a < args.length; a++) {
+                                var parts = args[a].split('=');
+                                isettings[parts[0]] = parts[1].replace(/^"/, '').replace(/"$/, '');
+                            }
+
+                            if (isettings.name) {
+                                settings[isettings.name] = (isettings.value === undefined) ? '' : isettings.value;
+                                if (isettings.type == 'checkbox' && inputs[i].indexOf('checked') == -1) {
+                                    settings[isettings.name] = (!settings[isettings.name]) ? 1 : 0;
+                                }
+                            }
+                        }
+                    }
+                }
+                inputs = data.match(/<select .+?<\/select>/g);
+                if (inputs) {
+                    for (i = 0; i < inputs.length; i++) {
+                        var name = inputs[i].match(/name=(\w+)/);
+                        if (name) {
+                            var vars = inputs[i].match(/<option value=(\d+) selected>/);
+                            if (vars) {
+                                settings[name[1]] = vars[1];
+                            } else {
+                                settings[name[1]] = 0;
+                            }
+                        }
+                    }
+                }
+                callback(null, settings);
+            }
+        });
+    }).on('error', function (err) {
+        adapter.log.error(err.message);
+        callback(err)
+    });
+}
+
 // Message is IP address
 function detectPorts(obj) {
     var ip;
@@ -427,9 +635,16 @@ function detectPorts(obj) {
     }
     if (ip && ip != '0.0.0.0') {
         getPortsState(ip, password, function (err, response) {
+            if (err || !response) {
+                if (obj.callback) adapter.sendTo(obj.from, obj.command, {error: err, response: response}, obj.callback);
+                return;
+            }
             var parts  = response.split(';');
-            var result = [];
-            if (obj.callback) adapter.sendTo(obj.from, obj.command, {error: err, response: response}, obj.callback);
+            detectPortConfig(ip, password, parts.length, function (result) {
+                detectDeviceConfig(ip, password, function (error, devConfig) {
+                    if (obj.callback) adapter.sendTo(obj.from, obj.command, {error: err, response: response, ports: result, config: devConfig}, obj.callback);
+                });
+            });
         });
     } else {
         if (obj.callback) adapter.sendTo(obj.from, obj.command, {error: 'invalid address'}, obj.callback);
@@ -462,9 +677,7 @@ function getPortState(port, callback) {
             }
             adapter.log.debug("response for " + adapter.config.ip + "[" + port + ']: ' + xmldata);
             // Analyse answer and updates staties
-            if (callback) {
-                callback(port, xmldata);
-            }
+            if (callback) callback(port, xmldata);
         });
     }).on('error', function (e) {
         adapter.log.warn("Got error by request " + e.message);
@@ -508,6 +721,7 @@ function getPortsState(ip, password, callback) {
         res.on('end', function () {
             if (res.statusCode != 200) {
                 adapter.log.warn('Response code: ' + res.statusCode + ' - ' + xmldata);
+                if (callback) callback(xmldata);
             } else {
                 adapter.log.debug('Response for ' + ip + '[all]: ' + xmldata);
                 // Analyse answer and updates statuses
@@ -592,6 +806,7 @@ function processClick(port) {
         triggerShortPress(port);
     }
 }
+
 function detectDoubleClick(port) {
     var config = adapter.config.ports[port];
 
