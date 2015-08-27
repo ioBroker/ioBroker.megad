@@ -145,18 +145,12 @@
                 'switch',
                 'PWM'
             ];
-        } else if (portSettings.pty == 2) {
+        } else if (portSettings.pty == 2 || portSettings.pty == 3) {
             modes = [
                 'not monitored',
                 '> threshold',
                 '< threshold',
                 '<> threshold'
-            ];
-        } else if (portSettings.pty == 3) {
-            modes = [
-                'none',
-                'DHT11',
-                'DHT22'
             ];
         }
         if (modes) {
@@ -181,7 +175,7 @@
         text += '<td class="tspace">';
 
         // ecmd(Action) and eth(net action)
-        if (portSettings.pty == 0 || portSettings.pty == 2) {
+        if (portSettings.pty == 0 || portSettings.pty == 2 || portSettings.pty == 3) {
             // ecmd(Action)
             text += _('Action:') + ' <input class="tvalue" data-type="ecmd" type="text" data-port="' + index + '" value="' + portSettings.ecmd + '"  style="width: 70px" maxsize="11"/>';
             // eth(net action)
@@ -195,14 +189,30 @@
             text += '<option value="1" ' + ((portSettings.d == 1) ? 'selected' : '') + '>' + _('on') + '</option>';
             text += '</select>';
         }
-
+        //Sensor type
+        if (portSettings.pty == 3) {
+            modes = [
+                'none',
+                'DHT11',
+                'DHT22',
+                '1W',
+                'iB'
+            ];
+            text += _('Sensor type:') + ' <select class="tvalue" data-type="d" data-port="' + index + '">';
+            text += '<option value="0" ' + ((portSettings.d == 0) ? 'selected' : '') + '>' + _('none') + '</option>';
+            text += '<option value="1" ' + ((portSettings.d == 1) ? 'selected' : '') + '>DHT11</option>';
+            text += '<option value="2" ' + ((portSettings.d == 2) ? 'selected' : '') + '>DHT22</option>';
+            text += '<option value="3" ' + ((portSettings.d == 3) ? 'selected' : '') + '>1 wire</option>';
+            text += '<option value="4" ' + ((portSettings.d == 4) ? 'selected' : '') + '>iB</option>';
+            text += '</select>';
+        }
         //pwm
         if (portSettings.pty == 1 && portSettings.m == 1) {
             text += _('PWM:') + ' <input class="tvalue" data-type="pwm" type="text" data-port="' + index + '" value="' + portSettings.pwm + '" maxsize="3"/>';
         }
 
         //misc
-        if (portSettings.pty == 2 && portSettings.m != 0) {
+        if ((portSettings.pty == 2 && portSettings.m != 0) || portSettings.pty == 3) {
             text += _('Threshold:') + ' <input class="tvalue" data-type="misc" type="text"  style="width: 70px" data-port="' + index + '" value="' + portSettings.misc + '" maxsize="3"/>';
         }
 
@@ -284,10 +294,10 @@
 
                 if (ports[index].eth    === undefined) ports[index].eth  = '';
                 if (ports[index].ecmd   === undefined) ports[index].ecmd = '';
-                if (ports[index].d      !== undefined) delete ports[index].d;
+                if (ports[index].d      === undefined) ports[index].d = 1;
                 if (ports[index].misc   === undefined) ports[index].misc = 0;
                 if (ports[index].m      === undefined) ports[index].m = 0;
-                if (ports[index].m > 2) ports[index].m = 1;
+                if (ports[index].m > 3) ports[index].m = 0;
             } else {
                 if (ports[index].factor !== undefined) delete ports[index].factor;
                 if (ports[index].offset !== undefined) delete ports[index].offset;
@@ -535,6 +545,31 @@
         }).keyup(function () {
             $(this).trigger('change');
         }).trigger('change');
+
+        $('#discover').button({
+            icons: {primary: 'ui-icon-refresh'}
+        }).click(function () {
+            sendTo(null, 'discover', null, function (msg) {
+                if (msg && msg.error) {
+                    showMessage(msg.error, _('Error'), 'alert');
+                } else if (msg && msg.devices) {
+                    if (!msg.devices.length) {
+                        showMessage(_('Nothing found'), _('Message'), 'alert');
+                    } else {
+                        var text = '';
+                        for (var d = 0; d < msg.devices.length; d++) {
+                            text += '<option value="' + msg.devices[d] + '">' + msg.devices[d] + '</option>';
+                        }
+                        $('#ips').show().html(text);
+                    }
+                }
+            });
+        }).css({'font-size': '0.7em'});
+
+        $('#ips').change(function () {
+            $('#ip').val($(this).val());
+        });
+
         onChange(false);
     }
 
@@ -733,14 +768,14 @@
     <table><tr><td><img src="megad.png"></td><td><h3 class="translate">MegaD-328 adapter settings</h3></td></tr></table>
 
     <table>
-        <tr><td class="translate" style="text-align: right">IP:</td><td>                    <input  class="value" id="ip"/></select></td>
-            <td class="translate" style="text-align: right">MegaD Name:</td><td>            <input  class="value" id="name"/></td></tr>
-        <tr><td class="translate" style="text-align: right">ioBroker Web Port:</td><td>     <input  class="value" id="port"          maxlength="5"/></td>
+        <tr><td class="translate" style="text-align: right">IP:</td><td>                                  <input  class="value" id="ip"/></select></td>
+            <td><select id="ips" style="display:none"></select><button id="discover" class="translateB"  style="display:none">Find devices</button></td></tr>
+        <tr><td class="translate" style="text-align: right">MegaD Name:</td><td>            <input  class="value" id="name"/></td>
             <td class="translate" style="text-align: right">Poll interval (sec):</td><td>   <input  class="value" id="pollInterval"  maxlength="3"/></td>
-        <tr><td class="translate" style="text-align: right">MegaD Password:</td><td>        <input  class="value" id="password"      maxlength="3"/></td>
+        <tr><td class="translate" style="text-align: right">ioBroker Web Port:</td><td>     <input  class="value" id="port"          maxlength="5"/></td>
             <td class="translate" style="text-align: right">Long press detect (ms):</td><td><input  class="value" id="longPress"     maxlength="4"/></td>
         </tr>
-        <tr><td class="translate" style="text-align: right"></td><td></td>
+        <tr><td class="translate" style="text-align: right">MegaD Password:</td><td>        <input  class="value" id="password"      maxlength="3"/></td>
             <td class="translate" style="text-align: right">Double press detect (ms):</td><td><input  class="value" id="doublePress" maxlength="4"/></td>
         </tr>
     </table>

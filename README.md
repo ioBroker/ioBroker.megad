@@ -94,7 +94,16 @@ ioBrokerЗначение = (MegaЗначение/256) * Множитель + С�
 
 **Порядок портов очень важен. Порт в первой колонке таблицы ассоциируется с портом P0 на MegaD-328. Порт в колонке 14 с P13.**          
           
+## TODO
+ - Implement Auto discover (simulator on port 52000 and driver)
+          
 ## Changelog
+### 0.2.1 (2015-08-27)
+* (bluefox) works only with latest firmware. 
+            For Digital Sensor the meaning of attribute m was changed from "sensor type" to "threshold detection"
+            Sensor type is "d"
+* (bluefox) support of digital sensors 1W and iB            
+
 ### 0.2.0 (2015-08-19)
 * (bluefox) completely rewrite adapter
 

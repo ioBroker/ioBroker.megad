@@ -121,7 +121,7 @@ function getState(port) {
         return (ports[port].value ? 'ON' : 'OFF');
     } else if (ports[port].pty == 2) {
         return (ports[port].value || 0);
-    } else if (ports[port].pty == 3 && ports[port].m == 0) {
+    } else if (ports[port].pty == 3 && (ports[port].d == 0 || ports[port].d == 3 || ports[port].d == 4)) {
         return 'temp:' + (ports[port].value || 0);
     } if (ports[port].pty == 3) {
         return 'temp:' + (ports[port].value || 0) + '/hum:' + (ports[port].humidity || 0);
@@ -353,15 +353,40 @@ function requestProcessor(req, res) {
             }
             // DSen. К порту подключен цифровой датчик
             else if (ports[args.pn].pty == 3) {
+                if (args.d !== undefined) {
+                    if (args.d == 0) {
+                        console.log('Set new DHT BASIC     for port ' + args.pn + ': ' + ports[args.pn].d + ' => ' + args.d);
+                        ports[args.pn].d = args.d;
+                    } else if (args.d == 1) {
+                        console.log('Set new DHT DHT11     for port ' + args.pn + ': ' + ports[args.pn].d + ' => ' + args.d);
+                        ports[args.pn].d = args.d;
+                    } else if (args.d == 2) {
+                        console.log('Set new DHT DHT22     for port ' + args.pn + ': ' + ports[args.pn].d + ' => ' + args.d);
+                        ports[args.pn].d = args.d;
+                    } else if (args.d == 3) {
+                        console.log('Set new DHT 1W        for port ' + args.pn + ': ' + ports[args.pn].d + ' => ' + args.d);
+                        ports[args.pn].d = args.d;
+                    } else if (args.d == 4) {
+                        console.log('Set new DHT iB        for port ' + args.pn + ': ' + ports[args.pn].d + ' => ' + args.d);
+                        ports[args.pn].d = args.d;
+                    } else {
+                        res.writeHead(500, {'Content-Type': 'text/html'});
+                        res.end('Invalid sensor type: ' + args.d, 'utf8');
+                        return;
+                    }
+                }
                 if (args.m !== undefined) {
                     if (args.m == 0) {
-                        console.log('Set new DHT BASIC     for port ' + args.pn + ': ' + ports[args.pn].m + ' => ' + args.m);
+                        console.log('Set new mode NORM     for port ' + args.pn + ': ' + ports[args.pn].m + ' => ' + args.m);
                         ports[args.pn].m = args.m;
                     } else if (args.m == 1) {
-                        console.log('Set new DHT DHT11     for port ' + args.pn + ': ' + ports[args.pn].m + ' => ' + args.m);
+                        console.log('Set new mode ">"      for port '  + args.pn + ': ' + ports[args.pn].m + ' => ' + args.m);
                         ports[args.pn].m = args.m;
                     } else if (args.m == 2) {
-                        console.log('Set new DHT DHT22     for port ' + args.pn + ': ' + ports[args.pn].m + ' => ' + args.m);
+                        console.log('Set new mode "<"      for port '  + args.pn + ': ' + ports[args.pn].m + ' => ' + args.m);
+                        ports[args.pn].m = args.m;
+                    } else if (args.m == 3) {
+                        console.log('Set new mode "<>"     for port ' + args.pn + ': ' + ports[args.pn].m + ' => ' + args.m);
                         ports[args.pn].m = args.m;
                     } else {
                         res.writeHead(500, {'Content-Type': 'text/html'});
@@ -369,16 +394,30 @@ function requestProcessor(req, res) {
                         return;
                     }
                 }
+                if (args.misc !== undefined) {
+                    console.log('Set new threshold     for port ' + args.pn + ': ' + ports[args.pn].misc + ' => ' + args.misc);
+                    ports[args.pn].misc = args.misc;
+                }
+                if (args.ecmd !== undefined) {
+                    console.log('Set new ecmd          for port ' + args.pn + ': ' + ports[args.pn].ecmd + ' => ' + args.ecmd);
+                    ports[args.pn].ecmd = args.ecmd;
+                }
+                if (args.eth !== undefined) {
+                    console.log('Set new eth           for port ' + args.pn + ': ' + ports[args.pn].eth + ' => ' + args.eth);
+                    ports[args.pn].eth = args.eth;
+                }
                 // show settings
                 text = '<p>P' + args.pn + ' - ADC</p>';
                 var modes = [
                     "0 - invalid",
                     "1 - DHT11",
-                    "2 - DHT22"
+                    "2 - DHT22",
+                    "3 - 1W",
+                    "4 - iB"
                 ];
 
                 text += '<p title="Тип подключенного датчика">' +
-                    'm - Sensor: ' + ports[args.pn].m + ' - ' + modes[ports[args.pn].m || 0] + '</p>';
+                    'm - Sensor: ' + ports[args.pn].d + ' - ' + modes[ports[args.pn].d || 0] + '</p>';
             } else
             // 255 - NC. Не сконфигурирован
             {
@@ -568,7 +607,12 @@ function requestProcessor(req, res) {
                     'P' + args.pt + '<br>temp:' + (ports[args.pt].value || 0) + '<br>hum:' + (ports[args.pt].hum || 0) +
                     '<form action=/sec/><input type=hidden name=pn value=' + args.pt + '>' +
                     'Type <select name=pty><option value=255' + ((ports[args.pt].pty == 255) ? ' selected' : '') + '>NC</option><option value=0' + ((ports[args.pt].pty == 0) ? ' selected' : '') + '>In</option><option value=1' + ((ports[args.pt].pty == 1) ? ' selected' : '') + '>Out</option><option value=3' + ((ports[args.pt].pty == 3) ? ' selected' : '') + '>DSen</option><option value=2' + ((ports[args.pt].pty == 2) ? ' selected' : '') + '>ADC</option></select><br>' +
-                    'Sensor: <select name=m><option value=1' + ((ports[args.pt].m == 1) ? ' selected' : '') + '>DHT11</option><option value=2' + ((ports[args.pt].m == 2) ? ' selected' : '') + '>DHT22</option></select><br>' +
+                    'Mode <select name=m><option value=0' + ((ports[args.pt].m == 0) ? ' selected' : '') + '>Norm<option value=1' + ((ports[args.pt].m == 1) ? ' selected' : '') + '>><option value=2' + ((ports[args.pt].m == 2) ? ' selected' : '') + '><<option value=3' + ((ports[args.pt].m == 3) ? ' selected' : '') + '><></select><br>' +
+                    'Val <input name=misc size=4 value=0.00><br>' +
+                    'Act <input name=ecmd value=""><br>' +
+                    'Net <input size=30 name=eth value=""> ' +
+                    '<input type=checkbox name=naf value=1><br>' +
+                    'Sensor: <select name=d><option value=1' + ((ports[args.pt].d == 1) ? ' selected' : '') + '>DHT11<option value=2' + ((ports[args.pt].d == 2) ? ' selected' : '') + '>DHT22<option value=3' + ((ports[args.pt].d == 3) ? ' selected' : '') + '>1W<option value=4' + ((ports[args.pt].d == 4) ? ' selected' : '') + '>iB</select><br>' +
                     '<input type=submit value=Save></form>';
             } else  {
                 text = '<a href=/sec>Back</a><br>' +

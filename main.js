@@ -651,6 +651,10 @@ function detectPorts(obj) {
     }
 }
 
+function discoverMega(obj) {
+    if (obj.callback) adapter.sendTo(obj.from, obj.command, {error: null, devices: []}, obj.callback);
+}
+
 // Get State of ONE port
 function getPortState(port, callback) {
     var parts = adapter.config.ip.split(':');
@@ -921,7 +925,7 @@ function processPortState(_port, value) {
             if (_ports[_port].pty == 3) {
                 adapter.setState(_ports[_port].id, value, true);
 
-                if (hm !== null && _ports[_port].m) {
+                if (hm !== null && (_ports[_port].d == 1 || _ports[_port].d == 2)) {
                     adapter.setState(_ports[_port].id + '_humidity', parseFloat(hm[1]), true);
                 }
             } else
@@ -1239,7 +1243,7 @@ function syncObjects() {
                 obj.common.type  = 'number';
                 if (!obj.common.role) obj.common.role = 'value.temperature';
 
-                if (settings.m) {
+                if (settings.d == 1 || settings.d == 2) {
                     obj1 = {
                         _id: adapter.namespace + '.' + id + '_humidity',
                         common: {
