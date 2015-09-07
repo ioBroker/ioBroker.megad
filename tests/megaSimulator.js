@@ -524,11 +524,15 @@ function requestProcessor(req, res) {
         } else {
             // Set port
             var r = args.cmd ? args.cmd.split(':') : [];
-            if (r.length == 2) {
+            if (r.length == 2 && ports[r[0]]) {
+                ports[r[0]].pty = parseInt(ports[r[0]].pty, 10);
                 if (ports[r[0]].pty != 1) {
+                    console.error('Try to control non output port ' + r[0]);
                     res.writeHead(500, {'Content-Type': 'text/html'});
                     res.end('Try to control non output port ' + r[0], 'utf8');
                 } else {
+                    ports[r[0]].m = parseInt(ports[r[0]].m, 10);
+
                     if (!ports[r[0]].m) {
                         if (r[1] == '2') {
                             ports[r[0]].value = !ports[r[0]].value;
@@ -544,6 +548,7 @@ function requestProcessor(req, res) {
                     } else {
                         ports[r[0]].value = r[1];
                     }
+                    console.log('Control output port ' + r[0] + ', value: ' + ports[r[0]].value);
                     res.writeHead(200, {'Content-Type': 'text/html'});
                     res.end('OK', 'utf8');
                 }
@@ -652,7 +657,36 @@ function requestProcessor(req, res) {
     //http://192.168.0.250/megad.php?at=25
 }
 
+function simulateServicePort() {
+    var dgram = require('dgram');
+
+    var server = dgram.createSocket('udp4');
+
+    server.on('error', function (err) {
+        console.error("server error:\n" + err.stack);
+        server.close();
+    });
+
+    server.on('message', function (msg, rinfo) {
+        console.log("server got: " + msg + " from " + rinfo.address + ":" + rinfo.port);
+        if (msg[0] == 0xAA && msg[1] == 0 && msg[2] == 12) {
+            server.send(new Buffer([0xAA]), 0, 1, rinfo.port, rinfo.address, function(err) {
+                if (err) console.error(err);
+            });
+        }
+    });
+
+    server.on("listening", function () {
+        var address = server.address();
+        console.log("service listening on " + address.address + ":" + address.port);
+    });
+
+    server.bind(52000);
+}
+
 function main() {
+    simulateServicePort();
+
     if (fs.existsSync(__dirname + '/config.json')) {
         try {
             var cfg = fs.readFileSync(__dirname + '/config.json').toString();

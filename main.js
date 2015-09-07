@@ -30,8 +30,6 @@ var adapter = utils.adapter('megad');
 
 adapter.on('stateChange', function (id, state) {
     if (id && state && !state.ack) {
-        id = id.substring(adapter.namespace.length + 1);
-
         if (!ports[id]) {
             adapter.log.error('Unknown port ID ' + id);
             return;
@@ -60,12 +58,12 @@ adapter.on('stateChange', function (id, state) {
             }
 
             if (ports[id].common.type == 'boolean') {
-                sendCommand(ports[id].index, state.val);
+                sendCommand(ports[id].native.port, state.val);
             } else {
                 state.val = (state.val - ports[id].offset) / ports[id].factor * 256;
                 state.val = Math.round(state.val);
 
-                sendCommand(ports[id].index, state.val);
+                sendCommand(ports[id].native.port, state.val);
             }
         }
     }
@@ -400,26 +398,26 @@ function writeConfigDevice(ip, pass, config, callback) {
 function writeConfig(obj) {
     var ip;
     var password;
-    var ports;
+    var _ports;
     var config;
     if (obj && obj.message && typeof obj.message == 'object') {
         ip       = obj.message.ip;
         password = obj.message.password;
-        ports    = obj.message.ports;
+        _ports   = obj.message.ports;
         config   = obj.message.config;
     } else {
         ip       = obj ? obj.message : '';
         password = adapter.config.password;
-        ports    = adapter.config.ports;
+        _ports   = adapter.config.ports;
         config   = adapter.config;
     }
 
     var errors = [];
     if (ip && ip != '0.0.0.0') {
         var running = false;
-        if (ports && ports.length) {
+        if (_ports && _ports.length) {
             running = true;
-            writeConfigOne(ip, password, ports, function (err, port) {
+            writeConfigOne(ip, password, _ports, function (err, port) {
                 setTimeout(function () {
                     if (err) errors[port] = err;
                     if (config) {
@@ -651,8 +649,58 @@ function detectPorts(obj) {
     }
 }
 
+function discoverMegaOnIP(ip, callback) {
+    var nums = ip.split('.');
+    nums[3] = 255;
+    ip = nums.join('.');
+
+    var dgram = require('dgram');
+    var message = new Buffer([0xAA, 0, 12]);
+    var client = dgram.createSocket("udp4");
+    client.send(message, 0, message.length, 52000, ip, function (err) {
+        console.log('Discover sent to ' + ip);
+    });
+    var result = [];
+    client.on('message', function (msg, rinfo) {
+        if (msg[0] == 0xAA) {
+            result.push(rinfo.address);
+        }
+
+        console.log('Received %d bytes from %s:%d\n',
+            msg.length, rinfo.address, rinfo.port);
+    });
+
+    setTimeout(function () {
+        client.close();
+        callback(result);
+    }, 2000);
+
+}
+
 function discoverMega(obj) {
-    if (obj.callback) adapter.sendTo(obj.from, obj.command, {error: null, devices: []}, obj.callback);
+    var interfaces = require('os').networkInterfaces();
+    var result = [];
+    var count  = 0;
+    for (var k in interfaces) {
+        for (var k2 in interfaces[k]) {
+            var address = interfaces[k][k2];
+            if (address.family === 'IPv4' && !address.internal && address.address) {
+                count++;
+                discoverMegaOnIP(address.address, function (_result) {
+                    if (_result && _result.length) {
+                        for(var i = 0; i < _result.length; i++) {
+                            result.push(_result[i]);
+                        }
+                    }
+                    if (!--count) {
+                        if (obj.callback) adapter.sendTo(obj.from, obj.command, {error: null, devices: result}, obj.callback);
+                    }
+                });
+            }
+        }
+    }
+
+    if (!count && obj.callback) adapter.sendTo(obj.from, obj.command, {error: null, devices: []}, obj.callback);
 }
 
 // Get State of ONE port
@@ -766,11 +814,6 @@ function processClick(port) {
 
                         adapter.setState(config.id + '_long', true, true);
 
-                        // Set to false in 200 ms
-                        setTimeout(function () {
-                            adapter.setState(config.id + '_long', false, true);
-                        }, 200);
-
                     }, adapter.config.longPress);
                 } else {
                     adapter.log.warn('long timer runs, but state change happens on [' + port + ']: ' + config.value);
@@ -798,6 +841,10 @@ function processClick(port) {
                         }, 100);
                     }
                 } else {
+                    // Set to false
+                    adapter.log.debug('Remove LONG press on port ' + port);
+                    adapter.setState(config.id + '_long', false, true);
+
                     adapter.log.debug('clear the double click flag on port [' + port + ']: ' + config.value);
                     config.longDone = false;
                 }
@@ -945,9 +992,9 @@ function pollStatus(dev) {
         if (err) adapter.log.warn(err);
 
         if (data) {
-            var ports = data.split(';');
-            for (var p = 0; p < ports.length; p++) {
-                processPortState(p, ports[p]);
+            var _ports = data.split(';');
+            for (var p = 0; p < _ports.length; p++) {
+                processPortState(p, _ports[p]);
             }
         }
     });
@@ -1060,10 +1107,8 @@ function sendCommand(port, value) {
             adapter.log.debug('Response "' + xmldata + '"');
             if (adapter.config.ports[port]) {
                 // Set state only if positive response from megaD
-                if (adapter.config.ports[port].digital) {
+                if (!adapter.config.ports[port].m) {
                     adapter.setState(adapter.config.ports[port].id, value ? true : false, true);
-                } else if (adapter.config.ports[port].isRollo) {
-                    adapter.setState(adapter.config.ports[port].id, ((255 - value) / 255).toFixed(2), true);
                 } else {
                     var f = (value / 256) * adapter.config.ports[port].factor + adapter.config.ports[port].offset;
                     adapter.setState(adapter.config.ports[port].id, f.toFixed(4), true);
@@ -1269,7 +1314,7 @@ function syncObjects() {
             }
 
             newObjects.push(obj);
-            ports[obj] = obj;
+            ports[obj._id] = obj;
 
             if (obj1) {
                 newObjects.push(obj1);

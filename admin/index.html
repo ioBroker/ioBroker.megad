@@ -177,7 +177,7 @@
         // ecmd(Action) and eth(net action)
         if (portSettings.pty == 0 || portSettings.pty == 2 || portSettings.pty == 3) {
             // ecmd(Action)
-            text += _('Action:') + ' <input class="tvalue" data-type="ecmd" type="text" data-port="' + index + '" value="' + portSettings.ecmd + '"  style="width: 70px" maxsize="11"/>';
+            text += _('Action:') + ' <input class="tvalue" data-type="ecmd" type="text" data-port="' + index + '" value="' + (portSettings.ecmd || '') + '"  style="width: 70px" maxsize="11"/>';
             // eth(net action)
             //text += _('Net:') + ' <input class="tvalue" data-type="eth" type="text" data-port="' + index + '" value="' + portSettings.eth  + '" style="width: 70px" maxsize="35"/>';
         }
@@ -213,7 +213,7 @@
 
         //misc
         if ((portSettings.pty == 2 && portSettings.m != 0) || portSettings.pty == 3) {
-            text += _('Threshold:') + ' <input class="tvalue" data-type="misc" type="text"  style="width: 70px" data-port="' + index + '" value="' + portSettings.misc + '" maxsize="3"/>';
+            text += _('Threshold:') + ' <input class="tvalue" data-type="misc" type="text"  style="width: 70px" data-port="' + index + '" value="' + (portSettings.misc || 0) + '" maxsize="3"/>';
         }
 
         if (portSettings.pty == 2) {
@@ -409,6 +409,8 @@
                     onChange();
                 });
             } else {
+                if (settings[key] === undefined) settings[key] = '';
+
                 $(this).val(settings[key]).change(function() {
                     onChange();
                 }).keyup(function() {
@@ -549,14 +551,16 @@
         $('#discover').button({
             icons: {primary: 'ui-icon-refresh'}
         }).click(function () {
+            $(this).button('disable');
             sendTo(null, 'discover', null, function (msg) {
+                $('#discover').button('enable');
                 if (msg && msg.error) {
                     showMessage(msg.error, _('Error'), 'alert');
                 } else if (msg && msg.devices) {
                     if (!msg.devices.length) {
                         showMessage(_('Nothing found'), _('Message'), 'alert');
                     } else {
-                        var text = '';
+                        var text = '<option value="">' + _('none') + '</option>';
                         for (var d = 0; d < msg.devices.length; d++) {
                             text += '<option value="' + msg.devices[d] + '">' + msg.devices[d] + '</option>';
                         }
@@ -567,7 +571,7 @@
         }).css({'font-size': '0.7em'});
 
         $('#ips').change(function () {
-            $('#ip').val($(this).val());
+            $('#ip').val($(this).val()).trigger('change');
         });
 
         onChange(false);
@@ -769,7 +773,7 @@
 
     <table>
         <tr><td class="translate" style="text-align: right">IP:</td><td>                                  <input  class="value" id="ip"/></select></td>
-            <td><select id="ips" style="display:none"></select><button id="discover" class="translateB"  style="display:none">Find devices</button></td></tr>
+            <td style="padding-left: 10px"><select id="ips" style="display:none"></select>&nbsp;<button id="discover" class="translateB">Find devices</button></td></tr>
         <tr><td class="translate" style="text-align: right">MegaD Name:</td><td>            <input  class="value" id="name"/></td>
             <td class="translate" style="text-align: right">Poll interval (sec):</td><td>   <input  class="value" id="pollInterval"  maxlength="3"/></td>
         <tr><td class="translate" style="text-align: right">ioBroker Web Port:</td><td>     <input  class="value" id="port"          maxlength="5"/></td>

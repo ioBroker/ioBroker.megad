@@ -98,6 +98,10 @@ ioBrokerЗначение = (MegaЗначение/256) * Множитель + С�
  - Implement Auto discover (simulator on port 52000 and driver)
           
 ## Changelog
+### 0.2.2 (2015-09-07)
+* (bluefox) fix write outputs
+* (bluefox) implement discover function
+
 ### 0.2.1 (2015-08-27)
 * (bluefox) works only with latest firmware. 
             For Digital Sensor the meaning of attribute m was changed from "sensor type" to "threshold detection"
