@@ -118,7 +118,11 @@ function getState(port) {
     if (ports[port].pty == 0) {
         return (ports[port].value ? 'ON' : 'OFF') + '/' + (ports[port].counter || 0);
     } else if (ports[port].pty == 1) {
-        return (ports[port].value ? 'ON' : 'OFF');
+        if (ports[port].m) {
+            return ports[port].value;
+        } else {
+            return (ports[port].value ? 'ON' : 'OFF');
+        }
     } else if (ports[port].pty == 2) {
         return (ports[port].value || 0);
     } else if (ports[port].pty == 3 && (ports[port].d == 0 || ports[port].d == 3 || ports[port].d == 4)) {
@@ -722,6 +726,15 @@ function main() {
                     ports[port].counter++;
                     if ((ports[port].m == 0 && ports[port].value) || (ports[port].m == 2 && !ports[port].value) || ports[port].m == 1)
                     trigger(port);
+                } else if (ports[port].pty == 1) {
+                    print = true;
+                    ports[port].value   = ports[port].value || 0;
+                    if (ports[port].m) {
+                        ports[port].value++;
+                        if (ports[port].value > 255) ports[port].value = 0;
+                    } else {
+                        ports[port].value   = !ports[port].value;
+                    }
                 } else
                 if (ports[port].pty == 2) {
                     print = true;

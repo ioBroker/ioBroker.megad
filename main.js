@@ -978,7 +978,15 @@ function processPortState(_port, value) {
             } else
             if (_ports[_port].pty == 1) {
                 adapter.log.debug('detected new value on port [' + _port + ']: ' + (value ? true : false));
-                adapter.setState(_ports[_port].id, value ? true : false, true);
+                if (_ports[_port].m === 1 || _ports[_port].m === '1') {
+                    _ports[_port].offset = parseFloat(_ports[_port].offset || 0);
+                    _ports[_port].factor = parseFloat(_ports[_port].factor || 1);
+
+                    var f = value / 256 * _ports[_port].factor - _ports[_port].offset;
+                    adapter.setState(_ports[_port].id, f, true);
+                } else {
+                    adapter.setState(_ports[_port].id, value ? true : false, true);
+                }
             }
         }
     }
@@ -1110,6 +1118,9 @@ function sendCommand(port, value) {
                 if (!adapter.config.ports[port].m) {
                     adapter.setState(adapter.config.ports[port].id, value ? true : false, true);
                 } else {
+                    adapter.config.ports[port].factor = parseFloat(adapter.config.ports[port].factor || 1);
+                    adapter.config.ports[port].offset = parseFloat(adapter.config.ports[port].offset || 0);
+
                     var f = (value / 256) * adapter.config.ports[port].factor + adapter.config.ports[port].offset;
                     adapter.setState(adapter.config.ports[port].id, f.toFixed(4), true);
                 }
@@ -1273,8 +1284,6 @@ function syncObjects() {
                 obj.common.type  = 'number';
                 if (!obj.common.role) obj.common.role = 'value';
                 obj.native.threshold = settings.offset + settings.factor * settings.misc;
-
-
             } else
             // digital temperature sensor
             if (settings.pty == 3) {

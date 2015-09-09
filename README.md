@@ -98,6 +98,9 @@ ioBrokerЗначение = (MegaЗначение/256) * Множитель + С�
  - Implement Auto discover (simulator on port 52000 and driver)
           
 ## Changelog
+### 0.2.3 (2015-09-09)
+* (bluefox) fix read of PWM values
+
 ### 0.2.2 (2015-09-07)
 * (bluefox) fix write outputs
 * (bluefox) implement discover function

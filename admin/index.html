@@ -208,7 +208,7 @@
         }
         //pwm
         if (portSettings.pty == 1 && portSettings.m == 1) {
-            text += _('PWM:') + ' <input class="tvalue" data-type="pwm" type="text" data-port="' + index + '" value="' + portSettings.pwm + '" maxsize="3"/>';
+            text += _('PWM:') + ' <input class="tvalue" data-type="pwm" type="text" data-port="' + index + '" value="' + portSettings.pwm + '" size="3" maxsize="3"/>';
         }
 
         //misc
@@ -216,9 +216,9 @@
             text += _('Threshold:') + ' <input class="tvalue" data-type="misc" type="text"  style="width: 70px" data-port="' + index + '" value="' + (portSettings.misc || 0) + '" maxsize="3"/>';
         }
 
-        if (portSettings.pty == 2) {
-            text += _('Offset:') + ' <input class="tvalue" data-type="offset" type="text" data-port="' + index + '"  style="width: 30px" value="' + portSettings.offset + '"/>';
-            text += _('Factor:') + ' <input class="tvalue" data-type="factor" type="text" data-port="' + index + '"  style="width: 30px" value="' + portSettings.factor + '"/>';
+        if (portSettings.pty == 2 || (portSettings.pty == 1 && portSettings.m == 1)) {
+            text += _('Offset:') + ' <input class="tvalue" data-type="offset" type="text" data-port="' + index + '"  style="width: 30px" value="' + (portSettings.offset || 0) + '"/>';
+            text += _('Factor:') + ' <input class="tvalue" data-type="factor" type="text" data-port="' + index + '"  style="width: 30px" value="' + (portSettings.factor || 1) + '"/>';
         }
 
         if (portSettings.pty == 0) {
