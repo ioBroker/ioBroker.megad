@@ -550,6 +550,12 @@ function requestProcessor(req, res) {
                             return;
                         }
                     } else {
+                        if (r[1] < 0 || r[1] > 255) {
+                            console.log('Control output port ' + r[0] + ', value: ' + ports[r[0]].value);
+                            res.writeHead(500, {'Content-Type': 'text/html'});
+                            res.end('Invalid value for analog port ' + r[0] + ': '  + r[1], 'utf8');
+                            return;
+                        }
                         ports[r[0]].value = r[1];
                     }
                     console.log('Control output port ' + r[0] + ', value: ' + ports[r[0]].value);

@@ -183,10 +183,10 @@
         }
 
         //d(default state)
-        if (portSettings.pty == 1) {
+        if (portSettings.pty == 1 && !portSettings.m) {
             text += _('Default state:') + ' <select class="tvalue" data-type="d" data-port="' + index + '">';
             text += '<option value="0" ' + ((portSettings.d == 0) ? 'selected' : '') + '>' + _('off') + '</option>';
-            text += '<option value="1" ' + ((portSettings.d == 1) ? 'selected' : '') + '>' + _('on') + '</option>';
+            text += '<option value="1" ' + ((portSettings.d == 1) ? 'selected' : '') + '>' + _('on')  + '</option>';
             text += '</select>';
         }
         //Sensor type
@@ -205,10 +205,6 @@
             text += '<option value="3" ' + ((portSettings.d == 3) ? 'selected' : '') + '>1 wire</option>';
             text += '<option value="4" ' + ((portSettings.d == 4) ? 'selected' : '') + '>iB</option>';
             text += '</select>';
-        }
-        //pwm
-        if (portSettings.pty == 1 && portSettings.m == 1) {
-            text += _('PWM:') + ' <input class="tvalue" data-type="pwm" type="text" data-port="' + index + '" value="' + portSettings.pwm + '" size="3" maxsize="3"/>';
         }
 
         //misc
@@ -641,13 +637,12 @@
                         aPorts[p].role    = ports[p].role || 'state';
                     } else
                     if (aPorts[p].pty == 1) {
-                        // output digital port
+                        // output digital or PWM port
                         aPorts[p].name    = ports[p].name || ('P' + p);
                         aPorts[p].m       = aPorts[p].m   || 0;
                         aPorts[p].d       = ports[p].d    || 0;
-                        aPorts[p].pwm     = ports[p].pwm  || 0;
 
-                        aPorts[p].role    = ports[p].role || 'state';
+                        aPorts[p].role    = ports[p].role || (aPorts[p].m ? 'level' : 'button');
                     } else
                     if (aPorts[p].pty == 2) {
                         // ADC port

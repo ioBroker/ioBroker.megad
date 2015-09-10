@@ -60,8 +60,14 @@ adapter.on('stateChange', function (id, state) {
             if (ports[id].common.type == 'boolean') {
                 sendCommand(ports[id].native.port, state.val);
             } else {
-                state.val = (state.val - ports[id].offset) / ports[id].factor * 256;
+                ports[id].native.offset = parseFloat(ports[id].native.offset || 0);
+                ports[id].native.factor = parseFloat(ports[id].native.factor || 1);
+
+                state.val = ((state.val - ports[id].native.offset) / ports[id].native.factor) * 255;
                 state.val = Math.round(state.val);
+
+                if (state.val < 0)   state.val = 0;
+                if (state.val > 255) state.val = 255;
 
                 sendCommand(ports[id].native.port, state.val);
             }
@@ -155,12 +161,8 @@ function writeConfigOne(ip, pass, _settings, callback, port, errors) {
         options.path += '&pty=0&m=' + settings.m + '&ecmd=' + encodeURIComponent(settings.ecmd.trim()) + '&eth=';
     } else
     if (settings.pty == 1) {
-        settings.pwm = parseInt(settings.pwm, 10) || 0;
-        if (settings.pwm > 255) settings.pwm = 255;
-        if (settings.pwm < 0)   settings.pwm = 0;
-
-        // digital out
-        options.path += '&pty=1&m=' + settings.m + '&d=' + settings.d + '&pwm=' + settings.pwm;
+        // digital or analog out
+        options.path += '&pty=1&m=' + settings.m + '&d=' + settings.d;
     } else
     if (settings.pty == 2) {
         settings.misc = parseInt(settings.misc, 10) || 0;
@@ -530,12 +532,10 @@ function detectPortConfig(ip, pass, length, callback, port, result) {
 
                 if (settings.pty == 1) {
                     settings.m   = settings.m   || 0;
-                    settings.pwm = settings.pwm || 0
                 }
                 if (settings.m    !== undefined) settings.m    = parseInt(settings.m,    10);
                 if (settings.d    !== undefined) settings.d    = parseInt(settings.d,    10);
                 if (settings.misc !== undefined) settings.misc = parseInt(settings.misc, 10);
-                if (settings.pwm  !== undefined) settings.pwm  = parseInt(settings.pwm,  10);
                 if (settings.pn   !== undefined) settings.pn   = parseInt(settings.pn,   10);
                 if (settings.naf  !== undefined) settings.naf  = parseInt(settings.naf,  10);
 
@@ -963,7 +963,7 @@ function processPortState(_port, value) {
                 processClick(_port);
             } else
             if (_ports[_port].pty == 2) {
-                var f = value * _ports[_port].factor + _ports[_port].offset;
+                var f = (value / 255) * _ports[_port].factor + _ports[_port].offset;
                 value = Math.round(value * 1000) / 1000;
 
                 adapter.log.debug('detected new value on port [' + _port + ']: ' + value + ', calc state ' + f);
@@ -982,7 +982,7 @@ function processPortState(_port, value) {
                     _ports[_port].offset = parseFloat(_ports[_port].offset || 0);
                     _ports[_port].factor = parseFloat(_ports[_port].factor || 1);
 
-                    var f = value / 256 * _ports[_port].factor - _ports[_port].offset;
+                    var f = (value / 255) * _ports[_port].factor + _ports[_port].offset;
                     adapter.setState(_ports[_port].id, f, true);
                 } else {
                     adapter.setState(_ports[_port].id, value ? true : false, true);
@@ -1249,13 +1249,17 @@ function syncObjects() {
             // output
             if (settings.pty == 1) {
                 if (settings.m) {
+                    settings.factor = parseFloat(settings.factor || 1);
+                    settings.offset = parseFloat(settings.offset || 0);
+
                     obj.common.write = true;
                     obj.common.read  = true;
-                    obj.common.def   = false;
-                    obj.common.desc  = 'P' + p + ' - digital output (PWM)';
-                    obj.common.type  = 'boolean';
+                    obj.common.def   = 0;
+                    obj.common.desc  = 'P' + p + ' - analog output (PWM)';
+                    obj.common.type  = 'number';
+                    obj.common.max   = settings.factor + settings.offset;
+                    obj.common.min   = settings.offset;
                     if (!obj.common.role) obj.common.role = 'state';
-                    obj.native.pwm = settings.pwm;
                 } else {
                     obj.common.write = true;
                     obj.common.read  = true;
@@ -1267,19 +1271,14 @@ function syncObjects() {
             } else
             // analog ADC
             if (settings.pty == 2) {
-                settings.factor  = parseFloat(settings.factor);
-                settings.offset  = parseFloat(settings.offset);
-
-                if (!settings.factor) {
-                    settings.factor = 1;
-                    adapter.log.error('Invalid factor 0 for port ' + p + '/"' + settings.name + '". Set factor to 1');
-                }
+                settings.factor  = parseFloat(settings.factor || 1);
+                settings.offset  = parseFloat(settings.offset || 0);
 
                 obj.common.write = false;
                 obj.common.read  = true;
                 obj.common.def   = 0;
                 obj.common.min   = settings.offset;
-                obj.common.max   = settings.offset + settings.factor * 255;
+                obj.common.max   = settings.offset + settings.factor;
                 obj.common.desc  = 'P' + p + ' - analog input';
                 obj.common.type  = 'number';
                 if (!obj.common.role) obj.common.role = 'value';
