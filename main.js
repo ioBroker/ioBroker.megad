@@ -963,7 +963,7 @@ function processPortState(_port, value) {
                 processClick(_port);
             } else
             if (_ports[_port].pty == 2) {
-                var f = (value / 255) * _ports[_port].factor + _ports[_port].offset;
+                var f = (value / 1023) * _ports[_port].factor + _ports[_port].offset;
                 value = Math.round(value * 1000) / 1000;
 
                 adapter.log.debug('detected new value on port [' + _port + ']: ' + value + ', calc state ' + f);

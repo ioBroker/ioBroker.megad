@@ -96,6 +96,9 @@ ioBrokerЗначение = (MegaЗначение/256) * Множитель + С�
          
           
 ## Changelog
+### 0.2.4 (2015-09-11)
+* (bluefox) fix read of analog inputs (0-1023)
+
 ### 0.2.3 (2015-09-09)
 * (bluefox) fix read of PWM values
 
