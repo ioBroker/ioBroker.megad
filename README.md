@@ -49,7 +49,15 @@ All ports, that are desired to be used must be configured in right order. Follow
 - Long press: detect long press on digital port (port have to be SWITCH type)
 - Double click ms: interval for detection of double click
 
-ioBrokerValue = (MegaValue/256) * factor + offset;
+For input:
+```
+ioBrokerValue = (MegaValue / 1023) * factor + offset;
+```
+
+For output: 
+```
+MegaValue = ((ioBrokerValue - offset) / factor) * 255;
+```
 
 To get the range of the analog value from 100 to 500 set the factor as 400 and offset = 100.
 
@@ -86,7 +94,17 @@ To get the range of the analog value from 100 to 500 set the factor as 400 and o
 - Длинное нажатие: если активировано, то порт будет генерировать событие "длинное нажатие" в объекте port_long (Порт должен быть цифровым и иметь тип "Переключатель")
 - Двойное нажатие: если активировано, то порт будет генерировать событие "double click" в объекте port_double
 
-ioBrokerЗначение = (MegaЗначение/256) * Множитель + Сдвиг;
+Для выхода:
+
+```
+MegaЗначение = ((ioBrokerЗначение - Сдвиг) / Множитель) * 255;
+```
+
+Для входа:
+
+```
+ioBrokerЗначение = (MegaЗначение / 1023) * Множитель + Сдвиг;
+```
 
 Например, что бы получить интервал значений от 100 до 500 нужно установить сдиг 100 и множитель 400.
 
@@ -96,6 +114,9 @@ ioBrokerЗначение = (MegaЗначение/256) * Множитель + С�
          
           
 ## Changelog
+### 0.2.5 (2015-09-17)
+* (bluefox) fix settings for digital sensors
+
 ### 0.2.4 (2015-09-11)
 * (bluefox) fix read of analog inputs (0-1023)
 

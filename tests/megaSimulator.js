@@ -97,18 +97,52 @@ var ports = [
         pty:     3,      // 0 - In, 1 - Out, 2 - ADC, 3 Digital Sensor, 255 - Non configured
 
         // ------------------------- INPUT Digital Sensor - No type -------------------------------
-        m:       0,     // Sensor. Тип подключенного датчика
+        d:       0,     // Sensor. Тип подключенного датчика
                         // 1 - DHT11
                         // 2 - DHT22
+                        // 3 - 1wire
+                        // 4 - iB
+
+        m:       0,      // Режим обработки изменений состояния порта. Для наглядности приведены примеры с выключателем/кнопкой.
+        // 0 - Переход из разомкнутого в замкнутое состояние (устройство реагирует только на нажатие кнопки).
+        // 1 - Переход из разомкнутого в замкнутое состояние и наоборот (устройство реагирует как на нажатия, так и на отпускание
+        // 2 - Переход из замкнутого в разомкнутое состояние (устройство реагирует только на отпускание кнопки)
+
+        ecmd:    '',     // Action. Сценарий по умолчанию, в котором задано управление Выходами (OUT) устройства в случае изменения состояния входа.
+        // См. раздел "Сценарии" (макс: 11 байт). Примечание.
+        // Сценарий выполняется всегда, если не указан сервер или если сервер указан, но не отвечает в течение 3 секунд.
+        // Сценарий по умолчанию не выполняется, если сервер указан и доступен.
+
+        eth:     '?pt=', // Net Action. URL, который вызывается устройством в случае изменения состояние входа (макс. 35 байт).
+        // Примечание. URL Net Action вызывается всегда, не зависимо от доступности сервера.
+
+        misc:    50,     // Val. Пороговое значение
+
         value:   45.6
     },
     {
         pty:     3,      // 0 - In, 1 - Out, 2 - ADC, 3 Digital Sensor, 255 - Non configured
 
         // ------------------------- INPUT Digital Sensor - DHT11 -------------------------------
-        m:       1,     // Sensor. Тип подключенного датчика
-        // 1 - DHT11
-        // 2 - DHT22
+        d:       1,      // Sensor. Тип подключенного датчика
+                         // 1 - DHT11
+                         // 2 - DHT22
+                         // 3 - 1wire
+                         // 4 - iB
+        m:       0,      // Режим обработки изменений состояния порта. Для наглядности приведены примеры с выключателем/кнопкой.
+                         // 0 - Переход из разомкнутого в замкнутое состояние (устройство реагирует только на нажатие кнопки).
+                         // 1 - Переход из разомкнутого в замкнутое состояние и наоборот (устройство реагирует как на нажатия, так и на отпускание
+                         // 2 - Переход из замкнутого в разомкнутое состояние (устройство реагирует только на отпускание кнопки)
+
+        ecmd:    '',     // Action. Сценарий по умолчанию, в котором задано управление Выходами (OUT) устройства в случае изменения состояния входа.
+                         // См. раздел "Сценарии" (макс: 11 байт). Примечание.
+                         // Сценарий выполняется всегда, если не указан сервер или если сервер указан, но не отвечает в течение 3 секунд.
+                         // Сценарий по умолчанию не выполняется, если сервер указан и доступен.
+
+        eth:     '?pt=', // Net Action. URL, который вызывается устройством в случае изменения состояние входа (макс. 35 байт).
+                         // Примечание. URL Net Action вызывается всегда, не зависимо от доступности сервера.
+
+        misc:    51,     // Val. Пороговое значение
         value:   45.6,
         humidity:   27
     }
@@ -118,11 +152,7 @@ function getState(port) {
     if (ports[port].pty == 0) {
         return (ports[port].value ? 'ON' : 'OFF') + '/' + (ports[port].counter || 0);
     } else if (ports[port].pty == 1) {
-        if (ports[port].m) {
-            return ports[port].value;
-        } else {
-            return (ports[port].value ? 'ON' : 'OFF');
-        }
+        return (ports[port].value ? 'ON' : 'OFF');
     } else if (ports[port].pty == 2) {
         return (ports[port].value || 0);
     } else if (ports[port].pty == 3 && (ports[port].d == 0 || ports[port].d == 3 || ports[port].d == 4)) {
@@ -327,11 +357,11 @@ function requestProcessor(req, res) {
                 }
                 if (args.ecmd !== undefined) {
                     console.log('Set new ecmd          for port ' + args.pn + ': ' + ports[args.pn].ecmd + ' => ' + args.ecmd);
-                    ports[args.pn].ecmd = args.ecmd;
+                    ports[args.pn].ecmd = decodeURIComponent(args.ecmd);
                 }
                 if (args.eth !== undefined) {
                     console.log('Set new eth           for port ' + args.pn + ': ' + ports[args.pn].eth + ' => ' + args.eth);
-                    ports[args.pn].eth = args.eth;
+                    ports[args.pn].eth = decodeURIComponent(args.eth);
                 }
 
                 // show settings
@@ -404,11 +434,11 @@ function requestProcessor(req, res) {
                 }
                 if (args.ecmd !== undefined) {
                     console.log('Set new ecmd          for port ' + args.pn + ': ' + ports[args.pn].ecmd + ' => ' + args.ecmd);
-                    ports[args.pn].ecmd = args.ecmd;
+                    ports[args.pn].ecmd = decodeURIComponent(args.ecmd);
                 }
                 if (args.eth !== undefined) {
                     console.log('Set new eth           for port ' + args.pn + ': ' + ports[args.pn].eth + ' => ' + args.eth);
-                    ports[args.pn].eth = args.eth;
+                    ports[args.pn].eth = decodeURIComponent(args.eth);
                 }
                 // show settings
                 text = '<p>P' + args.pn + ' - ADC</p>';
@@ -550,12 +580,6 @@ function requestProcessor(req, res) {
                             return;
                         }
                     } else {
-                        if (r[1] < 0 || r[1] > 255) {
-                            console.log('Control output port ' + r[0] + ', value: ' + ports[r[0]].value);
-                            res.writeHead(500, {'Content-Type': 'text/html'});
-                            res.end('Invalid value for analog port ' + r[0] + ': '  + r[1], 'utf8');
-                            return;
-                        }
                         ports[r[0]].value = r[1];
                     }
                     console.log('Control output port ' + r[0] + ', value: ' + ports[r[0]].value);
@@ -623,11 +647,11 @@ function requestProcessor(req, res) {
                     '<form action=/sec/><input type=hidden name=pn value=' + args.pt + '>' +
                     'Type <select name=pty><option value=255' + ((ports[args.pt].pty == 255) ? ' selected' : '') + '>NC</option><option value=0' + ((ports[args.pt].pty == 0) ? ' selected' : '') + '>In</option><option value=1' + ((ports[args.pt].pty == 1) ? ' selected' : '') + '>Out</option><option value=3' + ((ports[args.pt].pty == 3) ? ' selected' : '') + '>DSen</option><option value=2' + ((ports[args.pt].pty == 2) ? ' selected' : '') + '>ADC</option></select><br>' +
                     'Mode <select name=m><option value=0' + ((ports[args.pt].m == 0) ? ' selected' : '') + '>Norm<option value=1' + ((ports[args.pt].m == 1) ? ' selected' : '') + '>><option value=2' + ((ports[args.pt].m == 2) ? ' selected' : '') + '><<option value=3' + ((ports[args.pt].m == 3) ? ' selected' : '') + '><></select><br>' +
-                    'Val <input name=misc size=4 value=0.00><br>' +
-                    'Act <input name=ecmd value=""><br>' +
-                    'Net <input size=30 name=eth value=""> ' +
-                    '<input type=checkbox name=naf value=1><br>' +
-                    'Sensor: <select name=d><option value=1' + ((ports[args.pt].d == 1) ? ' selected' : '') + '>DHT11<option value=2' + ((ports[args.pt].d == 2) ? ' selected' : '') + '>DHT22<option value=3' + ((ports[args.pt].d == 3) ? ' selected' : '') + '>1W<option value=4' + ((ports[args.pt].d == 4) ? ' selected' : '') + '>iB</select><br>' +
+                    'Val <input name=misc size=4 value="' + (ports[args.pt].misc || 0) + '"><br>' +
+                    'Act <input name=ecmd value="' + (ports[args.pt].ecmd || '') + '"><br>' +
+                    'Net <input size=30 name=eth value="' + (ports[args.pt].eth || '') + '"> ' +
+                    '<input type=checkbox name=naf value=' + (ports[args.pt].naf ? ' checked' : '') + '><br>' +
+                    'Sensor: <select name=d><option value=0></option><option value=1' + ((ports[args.pt].d == 1) ? ' selected' : '') + '>DHT11<option value=2' + ((ports[args.pt].d == 2) ? ' selected' : '') + '>DHT22<option value=3' + ((ports[args.pt].d == 3) ? ' selected' : '') + '>1W<option value=4' + ((ports[args.pt].d == 4) ? ' selected' : '') + '>iB</select><br>' +
                     '<input type=submit value=Save></form>';
             } else  {
                 text = '<a href=/sec>Back</a><br>' +
@@ -732,15 +756,6 @@ function main() {
                     ports[port].counter++;
                     if ((ports[port].m == 0 && ports[port].value) || (ports[port].m == 2 && !ports[port].value) || ports[port].m == 1)
                     trigger(port);
-                } else if (ports[port].pty == 1) {
-                    print = true;
-                    ports[port].value   = ports[port].value || 0;
-                    if (ports[port].m) {
-                        ports[port].value++;
-                        if (ports[port].value > 255) ports[port].value = 0;
-                    } else {
-                        ports[port].value   = !ports[port].value;
-                    }
                 } else
                 if (ports[port].pty == 2) {
                     print = true;

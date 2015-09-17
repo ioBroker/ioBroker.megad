@@ -74,7 +74,6 @@
         "off":                  {"en": "off",                   "de": "off",                        "ru": "выкл"},
         "on":                   {"en": "on",                    "de": "on",                         "ru": "вкл"},
         "Threshold:":           {"en": "Threshold:",            "de": "Schwellwert:",               "ru": "Порог:"},
-        "Enable adapter first": {"en": "Enable adapter first",  "de": "Aktivier Adapter zuerst",    "ru": "Сначала надо активировать драйвер"},
         "Change ip or password": {
             "en": "Change ip or password",
             "de": "IP Adresse oder Kennwort ändern",
@@ -184,10 +183,10 @@
         }
 
         //d(default state)
-        if (portSettings.pty == 1 && !portSettings.m) {
+        if (portSettings.pty == 1) {
             text += _('Default state:') + ' <select class="tvalue" data-type="d" data-port="' + index + '">';
             text += '<option value="0" ' + ((portSettings.d == 0) ? 'selected' : '') + '>' + _('off') + '</option>';
-            text += '<option value="1" ' + ((portSettings.d == 1) ? 'selected' : '') + '>' + _('on')  + '</option>';
+            text += '<option value="1" ' + ((portSettings.d == 1) ? 'selected' : '') + '>' + _('on') + '</option>';
             text += '</select>';
         }
         //Sensor type
@@ -207,15 +206,19 @@
             text += '<option value="4" ' + ((portSettings.d == 4) ? 'selected' : '') + '>iB</option>';
             text += '</select>';
         }
+        //pwm
+        if (portSettings.pty == 1 && portSettings.m == 1) {
+            text += _('PWM:') + ' <input class="tvalue" data-type="pwm" type="text" data-port="' + index + '" value="' + (portSettings.pwm || 0) + '" maxsize="3"/>';
+        }
 
         //misc
         if ((portSettings.pty == 2 && portSettings.m != 0) || portSettings.pty == 3) {
             text += _('Threshold:') + ' <input class="tvalue" data-type="misc" type="text"  style="width: 70px" data-port="' + index + '" value="' + (portSettings.misc || 0) + '" maxsize="3"/>';
         }
 
-        if (portSettings.pty == 2 || (portSettings.pty == 1 && portSettings.m == 1)) {
-            text += _('Offset:') + ' <input class="tvalue" data-type="offset" type="text" data-port="' + index + '"  style="width: 30px" value="' + (portSettings.offset || 0) + '"/>';
-            text += _('Factor:') + ' <input class="tvalue" data-type="factor" type="text" data-port="' + index + '"  style="width: 30px" value="' + (portSettings.factor || 1) + '"/>';
+        if (portSettings.pty == 2) {
+            text += _('Offset:') + ' <input class="tvalue" data-type="offset" type="text" data-port="' + index + '"  style="width: 30px" value="' + portSettings.offset + '"/>';
+            text += _('Factor:') + ' <input class="tvalue" data-type="factor" type="text" data-port="' + index + '"  style="width: 30px" value="' + portSettings.factor + '"/>';
         }
 
         if (portSettings.pty == 0) {
@@ -638,12 +641,13 @@
                         aPorts[p].role    = ports[p].role || 'state';
                     } else
                     if (aPorts[p].pty == 1) {
-                        // output digital or PWM port
+                        // output digital port
                         aPorts[p].name    = ports[p].name || ('P' + p);
                         aPorts[p].m       = aPorts[p].m   || 0;
                         aPorts[p].d       = ports[p].d    || 0;
+                        aPorts[p].pwm     = ports[p].pwm  || 0;
 
-                        aPorts[p].role    = ports[p].role || (aPorts[p].m ? 'level' : 'button');
+                        aPorts[p].role    = ports[p].role || 'state';
                     } else
                     if (aPorts[p].pty == 2) {
                         // ADC port
