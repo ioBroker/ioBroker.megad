@@ -60,7 +60,7 @@ adapter.on('stateChange', function (id, state) {
             if (ports[id].common.type == 'boolean') {
                 sendCommand(ports[id].native.port, state.val);
             } else {
-                state.val = (state.val - ports[id].offset) / ports[id].factor * 256;
+                state.val = (state.val - ports[id].offset) / ports[id].factor * 255;
                 state.val = Math.round(state.val);
 
                 sendCommand(ports[id].native.port, state.val);
@@ -152,7 +152,7 @@ function writeConfigOne(ip, pass, _settings, callback, port, errors) {
     if (settings.pty == 0) {
         settings.ecmd = settings.ecmd || '';
         settings.eth  = '';//settings.eth  || '';
-        options.path += '&pty=0&m=' + settings.m + '&ecmd=' + encodeURIComponent(settings.ecmd.trim()) + '&eth=';
+        options.path += '&pty=0&m=' + (settings.m || 0) + '&ecmd=' + encodeURIComponent((settings.ecmd || '').trim()) + '&eth=';
     } else
     if (settings.pty == 1) {
         settings.pwm = parseInt(settings.pwm, 10) || 0;
@@ -160,7 +160,7 @@ function writeConfigOne(ip, pass, _settings, callback, port, errors) {
         if (settings.pwm < 0)   settings.pwm = 0;
 
         // digital out
-        options.path += '&pty=1&m=' + settings.m + '&d=' + settings.d + '&pwm=' + settings.pwm;
+        options.path += '&pty=1&m=' + (settings.m || 0) + '&d=' + (settings.d || 0) + '&pwm=' + (settings.pwm || 0);
     } else
     if (settings.pty == 2) {
         // Convert misc with given factor and offset
@@ -168,19 +168,19 @@ function writeConfigOne(ip, pass, _settings, callback, port, errors) {
         settings.offset = parseFloat(settings.offset || 0) || 0;
         settings.misc = Math.round(((parseFloat(settings.misc) || 0) - settings.offset) / settings.factor * 1023);
 
-        if (settings.misc > 1024) settings.misc = 1024;
+        if (settings.misc > 1023) settings.misc = 1023;
         if (settings.misc < 0)    settings.misc = 0;
 
         // ADC
         settings.ecmd = settings.ecmd || '';
         settings.eth  = ''; //settings.eth  || '';
-        options.path += '&pty=2&m=' + settings.m + '&misc=' + settings.misc + '&ecmd=' + encodeURIComponent(settings.ecmd.trim()) + '&eth=';
+        options.path += '&pty=2&m=' + (settings.m || 0) + '&misc=' + (settings.misc || 0) + '&ecmd=' + encodeURIComponent((settings.ecmd || '').trim()) + '&eth=';
     } else
     if (settings.pty == 3) {
         settings.ecmd = settings.ecmd || '';
         settings.eth  = ''; //settings.eth  || '';
         // digital sensor
-        options.path += '&pty=3&d=' + settings.d + '&m=' + settings.m + '&misc=' + settings.misc + '&ecmd=' + encodeURIComponent(settings.ecmd.trim()) + '&eth=';
+        options.path += '&pty=3&d=' + (settings.d || 0) + '&m=' + (settings.m || 0) + '&misc=' + (settings.misc || 0) + '&ecmd=' + encodeURIComponent((settings.ecmd || '').trim()) + '&eth=';
     } else
     if (settings.pty == 4) {
         adapter.log.info('Do not configure internal temperature port ' + config.port);
@@ -1117,7 +1117,7 @@ function sendCommand(port, value) {
                 if (!adapter.config.ports[port].m) {
                     adapter.setState(adapter.config.ports[port].id, value ? true : false, true);
                 } else {
-                    var f = (value / 256) * adapter.config.ports[port].factor + adapter.config.ports[port].offset;
+                    var f = (value / 255) * adapter.config.ports[port].factor + adapter.config.ports[port].offset;
                     adapter.setState(adapter.config.ports[port].id, f.toFixed(4), true);
                 }
             } else {
