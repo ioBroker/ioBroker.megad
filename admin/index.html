@@ -107,7 +107,7 @@
         // name, room, role, pty(type), ecmd(Action), eth(net action), m(mode), d(default state), pwm(0-255), misc (threshold)
         var text = '<tr class="tspace">';
         // index
-        text += '<td class="tspace">P' + index + '</td>';
+        text += '<td class="tspace">' + ((index == 14 || index == 15) ? ('A' + (index - 8)) : ('P' + index)) + '</td>';
         // name
         text += '<td class="tspace"><input class="tvalue" type="text" data-type="name" data-port="' + index + '" value="' + portSettings.name + '" style="width: 100%"/></td>';
 
@@ -123,12 +123,12 @@
         text += '<td class="tspace"><input class="tvalue" type="text"  data-type="role" data-port="' + index + '" value="' + portSettings.role + '" style="width: 100%"/></td>';
 
         // type
-        text += '<td class="tspace"><select class="tvalue" data-type="pty" data-port="' + index + '" style="width: 100%">';
-        text += '<option value="255" ' + ((portSettings.pty == 255) ? 'selected' : '') + '>' + _('NC') + '</option>';
-        text += '<option value="0" '   + ((portSettings.pty == 0)   ? 'selected' : '') + '>' + _('Input') + '</option>';
-        text += '<option value="1" '   + ((portSettings.pty == 1)   ? 'selected' : '') + '>' + _('Output') + '</option>';
-        text += '<option value="2" '   + ((portSettings.pty == 2)   ? 'selected' : '') + '>' + _('ADC') + '</option>';
-        text += '<option value="3" '   + ((portSettings.pty == 3)   ? 'selected' : '') + '>' + _('Digital Sensor') + '</option>';
+        text += '<td class="tspace"><select class="tvalue" ' + (((index == 14 || index == 15) && portSettings.pty == 2) ? 'disabled' : '') + ' data-type="pty" data-port="' + index + '" style="width: 100%">';
+        text += '<option value="255" ' + ((portSettings.pty == 255) ? 'selected' : '') + '>' + _('NC')              + '</option>';
+        text += '<option value="0" '   + ((portSettings.pty == 0)   ? 'selected' : '') + '>' + _('Input')           + '</option>';
+        text += '<option value="1" '   + ((portSettings.pty == 1)   ? 'selected' : '') + '>' + _('Output')          + '</option>';
+        text += '<option value="2" '   + ((portSettings.pty == 2)   ? 'selected' : '') + '>' + _('ADC')             + '</option>';
+        text += '<option value="3" '   + ((portSettings.pty == 3)   ? 'selected' : '') + '>' + _('Digital Sensor')  + '</option>';
         text += '<option value="4" '   + ((portSettings.pty == 4)   ? 'selected' : '') + '>' + _('Internal Sensor') + '</option>';
         '</td>';
 
@@ -145,7 +145,7 @@
                 'switch',
                 'PWM'
             ];
-        } else if (portSettings.pty == 2 || portSettings.pty == 3) {
+        } else if (portSettings.pty == 2 || (portSettings.pty == 3 && portSettings.d == 3)) {
             modes = [
                 'not monitored',
                 '> threshold',
@@ -212,13 +212,13 @@
         }
 
         //misc
-        if ((portSettings.pty == 2 && portSettings.m != 0) || portSettings.pty == 3) {
+        if ((portSettings.pty == 2 && portSettings.m != 0) || (portSettings.pty == 3 && portSettings.d == 3)) {
             text += _('Threshold:') + ' <input class="tvalue" data-type="misc" type="text"  style="width: 70px" data-port="' + index + '" value="' + (portSettings.misc || 0) + '" maxsize="3"/>';
         }
 
         if (portSettings.pty == 2) {
-            text += _('Offset:') + ' <input class="tvalue" data-type="offset" type="text" data-port="' + index + '"  style="width: 30px" value="' + portSettings.offset + '"/>';
-            text += _('Factor:') + ' <input class="tvalue" data-type="factor" type="text" data-port="' + index + '"  style="width: 30px" value="' + portSettings.factor + '"/>';
+            text += _('Offset:') + ' <input class="tvalue" data-type="offset" type="text" data-port="' + index + '" style="width: 30px" value="' + (portSettings.offset || 0) + '"/>';
+            text += _('Factor:') + ' <input class="tvalue" data-type="factor" type="text" data-port="' + index + '" style="width: 30px" value="' + (portSettings.factor || 1) + '"/>';
         }
 
         if (portSettings.pty == 0) {
@@ -243,7 +243,7 @@
             ports[index][attr] = $(this).val();
         }
 
-        if (attr == 'm' || attr == 'pty') {
+        if (attr == 'm' || attr == 'pty' || attr == 'd') {
             // if input
             if (ports[index].pty == 0) {
                 // m: 0 - on close, 1 - on change, 2 - on open
@@ -295,8 +295,13 @@
                 if (ports[index].eth    === undefined) ports[index].eth  = '';
                 if (ports[index].ecmd   === undefined) ports[index].ecmd = '';
                 if (ports[index].d      === undefined) ports[index].d = 1;
-                if (ports[index].misc   === undefined) ports[index].misc = 0;
-                if (ports[index].m      === undefined) ports[index].m = 0;
+                if (ports[index].d != 3) {
+                    ports[index].misc = 0;
+                    ports[index].m    = 0;
+                } else {
+                    if (ports[index].misc   === undefined) ports[index].misc = 0;
+                    if (ports[index].m      === undefined) ports[index].m = 0;
+                }
                 if (ports[index].m > 3) ports[index].m = 0;
             } else {
                 if (ports[index].factor !== undefined) delete ports[index].factor;
@@ -450,18 +455,33 @@
         $('#add').button({
             icons: {primary: 'ui-icon-plusthick'}
         }).click(function () {
-            ports.push({
-                pty: 0,
-                name: ('P' + ports.length),
-                ecmd: '',
-                eth: '',
-                m: 0,
+            if (ports.length == 14 || ports.length == 15) {
+                ports.push({
+                    pty:    2,
+                    name:   'A' + (ports.length - 8),
+                    ecmd:   '',
+                    eth:    '',
+                    m:      0,
+                    factor: 1,
+                    offset: 0,
 
-                long: false,
-                double: false,
-                role: 'state',
-                room: ''
-            });
+                    role:   'state',
+                    room:   ''
+                });
+            } else {
+                ports.push({
+                    pty:    0,
+                    name:   ('P' + ports.length),
+                    ecmd:   '',
+                    eth:    '',
+                    m:      0,
+
+                    long:   false,
+                    double: false,
+                    role:   'state',
+                    room:   ''
+                });
+            }
             onchange();
 
             showPorts();
@@ -651,7 +671,7 @@
                     } else
                     if (aPorts[p].pty == 2) {
                         // ADC port
-                        aPorts[p].name    = ports[p].name  || ('P' + p);
+                        aPorts[p].name    = ports[p].name  || ((p == 14 || p == 15) ? ('A' + (p - 8)) : ('P' + p));
                         aPorts[p].ecmd    = aPorts[p].ecmd || '';
                         aPorts[p].eth     = aPorts[p].eth  || '';
                         aPorts[p].m       = aPorts[p].m    || 0;

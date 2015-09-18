@@ -147,6 +147,7 @@ function writeConfigOne(ip, pass, _settings, callback, port, errors) {
     };
 
     //http://192.168.0.14/sec/?pn=1&pty=0...
+    if (settings.ecmd === 'ð=') settings.ecmd = '';
 
     // Input
     if (settings.pty == 0) {
@@ -174,13 +175,16 @@ function writeConfigOne(ip, pass, _settings, callback, port, errors) {
         // ADC
         settings.ecmd = settings.ecmd || '';
         settings.eth  = ''; //settings.eth  || '';
-        options.path += '&pty=2&m=' + (settings.m || 0) + '&misc=' + (settings.misc || 0) + '&ecmd=' + encodeURIComponent((settings.ecmd || '').trim()) + '&eth=';
+        options.path += (((port == 14 || port == 15) && settings.pty == 2) ? '' : '&pty=2') + '&m=' + (settings.m || 0) + '&misc=' + (settings.misc || 0) + '&ecmd=' + encodeURIComponent((settings.ecmd || '').trim()) + '&eth=';
     } else
     if (settings.pty == 3) {
         settings.ecmd = settings.ecmd || '';
         settings.eth  = ''; //settings.eth  || '';
         // digital sensor
-        options.path += '&pty=3&d=' + (settings.d || 0) + '&m=' + (settings.m || 0) + '&misc=' + (settings.misc || 0) + '&ecmd=' + encodeURIComponent((settings.ecmd || '').trim()) + '&eth=';
+        options.path += '&pty=3&d=' + (settings.d || 0);
+        if (settings.d == 3) {
+            options.path += '&m=' + (settings.m || 0) + '&misc=' + (settings.misc || 0) + '&ecmd=' + encodeURIComponent((settings.ecmd || '').trim()) + '&eth=';
+        }
     } else
     if (settings.pty == 4) {
         adapter.log.info('Do not configure internal temperature port ' + config.port);
@@ -190,10 +194,7 @@ function writeConfigOne(ip, pass, _settings, callback, port, errors) {
         options.path += '&pty=255';
     }
 
-
     // If internal temperature
-
-
     adapter.log.info('Write config for port ' + port + ': http://' + ip + options.path);
 
     http.get(options, function (res) {
@@ -545,7 +546,7 @@ function detectPortConfig(ip, pass, length, callback, port, result) {
                 if (settings.pwm  !== undefined) settings.pwm  = parseInt(settings.pwm,  10);
                 if (settings.pn   !== undefined) settings.pn   = parseInt(settings.pn,   10);
                 if (settings.naf  !== undefined) settings.naf  = parseInt(settings.naf,  10);
-
+                if (settings.ecmd === 'ð=')      settings.ecmd = '';
 
                 result[port] = settings;
                 adapter.log.debug('Response: ' + data);
@@ -1247,10 +1248,12 @@ function syncObjects() {
                 if (settings.m) {
                     obj.common.write = true;
                     obj.common.read  = true;
-                    obj.common.def   = false;
+                    obj.common.def   = 0;
                     obj.common.desc  = 'P' + p + ' - digital output (PWM)';
-                    obj.common.type  = 'boolean';
-                    if (!obj.common.role) obj.common.role = 'state';
+                    obj.common.type  = 'number';
+                    obj.common.min   = 0;
+                    obj.common.max   = 255;
+                    if (!obj.common.role) obj.common.role = 'level';
                     obj.native.pwm = settings.pwm;
                 } else {
                     obj.common.write = true;
@@ -1275,13 +1278,11 @@ function syncObjects() {
                 obj.common.read  = true;
                 obj.common.def   = 0;
                 obj.common.min   = settings.offset;
-                obj.common.max   = settings.offset + settings.factor * 255;
+                obj.common.max   = settings.offset + settings.factor;
                 obj.common.desc  = 'P' + p + ' - analog input';
                 obj.common.type  = 'number';
                 if (!obj.common.role) obj.common.role = 'value';
                 obj.native.threshold = settings.offset + settings.factor * settings.misc;
-
-
             } else
             // digital temperature sensor
             if (settings.pty == 3) {
@@ -1345,10 +1346,12 @@ function syncObjects() {
                     var mergedObj = JSON.parse(JSON.stringify(_states[j]));
 
                     if (mergedObj.common.history) delete mergedObj.common.history;
+                    if (mergedObj.common.mobile)  delete mergedObj.common.mobile;
 
                     if (JSON.stringify(mergedObj) != JSON.stringify(newObjects[i])) {
                         adapter.log.info('Update state ' + newObjects[i]._id);
                         if (_states[j].common.history) newObjects[i].common.history = _states[j].common.history;
+                        if (_states[j].common.mobile)  newObjects[i].common.mobile  = _states[j].common.mobile;
                         adapter.setObject(newObjects[i]._id, newObjects[i]);
                     }
 
