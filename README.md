@@ -114,6 +114,9 @@ ioBrokerЗначение = (MegaЗначение / 1023) * Множитель + 
          
           
 ## Changelog
+### 0.2.7 (2015-09-19)
+* (bluefox) fix PWM output
+
 ### 0.2.6 (2015-09-18)
 * (bluefox) tuning on settings for ports: Ports 14 and 15 are always ADC. Threshold are shown only for 1-wire if digital sensor.
 

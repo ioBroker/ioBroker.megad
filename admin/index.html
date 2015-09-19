@@ -184,11 +184,16 @@
 
         //d(default state)
         if (portSettings.pty == 1) {
-            text += _('Default state:') + ' <select class="tvalue" data-type="d" data-port="' + index + '">';
-            text += '<option value="0" ' + ((portSettings.d == 0) ? 'selected' : '') + '>' + _('off') + '</option>';
-            text += '<option value="1" ' + ((portSettings.d == 1) ? 'selected' : '') + '>' + _('on') + '</option>';
-            text += '</select>';
+            if (portSettings.m) {
+                portSettings.d = 0;
+            } else {
+                text += _('Default state:') + ' <select class="tvalue" data-type="d" data-port="' + index + '">';
+                text += '<option value="0" ' + ((portSettings.d == 0) ? 'selected' : '') + '>' + _('off') + '</option>';
+                text += '<option value="1" ' + ((portSettings.d == 1) ? 'selected' : '') + '>' + _('on') + '</option>';
+                text += '</select>';
+            }
         }
+
         //Sensor type
         if (portSettings.pty == 3) {
             modes = [
@@ -208,7 +213,7 @@
         }
         //pwm
         if (portSettings.pty == 1 && portSettings.m == 1) {
-            text += _('PWM:') + ' <input class="tvalue" data-type="pwm" type="text" data-port="' + index + '" value="' + (portSettings.pwm || 0) + '" maxsize="3"/>';
+            text += _('PWM:') + ' <input class="tvalue" data-type="pwm" type="text" data-port="' + index + '" value="' + (portSettings.pwm || 0) + '" size=4 maxsize="3"/>';
         }
 
         //misc
@@ -216,7 +221,7 @@
             text += _('Threshold:') + ' <input class="tvalue" data-type="misc" type="text"  style="width: 70px" data-port="' + index + '" value="' + (portSettings.misc || 0) + '" maxsize="3"/>';
         }
 
-        if (portSettings.pty == 2) {
+        if (portSettings.pty == 2 || (portSettings.pty == 1 && portSettings.m)) {
             text += _('Offset:') + ' <input class="tvalue" data-type="offset" type="text" data-port="' + index + '" style="width: 30px" value="' + (portSettings.offset || 0) + '"/>';
             text += _('Factor:') + ' <input class="tvalue" data-type="factor" type="text" data-port="' + index + '" style="width: 30px" value="' + (portSettings.factor || 1) + '"/>';
         }

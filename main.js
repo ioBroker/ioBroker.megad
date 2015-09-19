@@ -60,7 +60,7 @@ adapter.on('stateChange', function (id, state) {
             if (ports[id].common.type == 'boolean') {
                 sendCommand(ports[id].native.port, state.val);
             } else {
-                state.val = (state.val - ports[id].offset) / ports[id].factor * 255;
+                state.val = (state.val - ports[id].native.offset) / ports[id].native.factor;
                 state.val = Math.round(state.val);
 
                 sendCommand(ports[id].native.port, state.val);
@@ -167,7 +167,7 @@ function writeConfigOne(ip, pass, _settings, callback, port, errors) {
         // Convert misc with given factor and offset
         settings.factor = parseFloat(settings.factor || 1) || 1;
         settings.offset = parseFloat(settings.offset || 0) || 0;
-        settings.misc = Math.round(((parseFloat(settings.misc) || 0) - settings.offset) / settings.factor * 1023);
+        settings.misc = Math.round(((parseFloat(settings.misc) || 0) - settings.offset) / settings.factor);
 
         if (settings.misc > 1023) settings.misc = 1023;
         if (settings.misc < 0)    settings.misc = 0;
@@ -985,8 +985,16 @@ function processPortState(_port, value) {
                 }
             } else
             if (_ports[_port].pty == 1) {
-                adapter.log.debug('detected new value on port [' + _port + ']: ' + (value ? true : false));
-                adapter.setState(_ports[_port].id, value ? true : false, true);
+                if (_ports[_port].m) {
+                    var f = value * _ports[_port].factor + _ports[_port].offset;
+                    value = Math.round(value * 1000) / 1000;
+
+                    adapter.log.debug('detected new value on port [' + _port + ']: ' + value);
+                    adapter.setState(_ports[_port].id, value, true);
+                } else {
+                    adapter.log.debug('detected new value on port [' + _port + ']: ' + (value ? true : false));
+                    adapter.setState(_ports[_port].id, value ? true : false, true);
+                }
             }
         }
     }
@@ -1118,8 +1126,9 @@ function sendCommand(port, value) {
                 if (!adapter.config.ports[port].m) {
                     adapter.setState(adapter.config.ports[port].id, value ? true : false, true);
                 } else {
-                    var f = (value / 255) * adapter.config.ports[port].factor + adapter.config.ports[port].offset;
-                    adapter.setState(adapter.config.ports[port].id, f.toFixed(4), true);
+                    var f = value * adapter.config.ports[port].factor + adapter.config.ports[port].offset;
+                    f = Math.round(f * 1000) / 1000;
+                    adapter.setState(adapter.config.ports[port].id, f, true);
                 }
             } else {
                 adapter.log.warn('Unknown port ' + port);
@@ -1210,13 +1219,13 @@ function syncObjects() {
                         obj1 = {
                             _id: adapter.namespace + '.' + id + '_long',
                             common: {
-                                name: obj.common.name + '_long',
-                                role: 'state',
+                                name:  obj.common.name + '_long',
+                                role:  'state',
                                 write: false,
-                                read: true,
-                                def: false,
-                                desc: 'P' + p + ' - long press',
-                                type: 'boolean'
+                                read:  true,
+                                def:   false,
+                                desc:  'P' + p + ' - long press',
+                                type:  'boolean'
                             },
                             native: JSON.parse(JSON.stringify(settings)),
                             type: 'state'
@@ -1246,6 +1255,9 @@ function syncObjects() {
             // output
             if (settings.pty == 1) {
                 if (settings.m) {
+                    settings.factor  = parseFloat(settings.factor || 1);
+                    settings.offset  = parseFloat(settings.offset || 0);
+
                     obj.common.write = true;
                     obj.common.read  = true;
                     obj.common.def   = 0;
@@ -1266,13 +1278,8 @@ function syncObjects() {
             } else
             // analog ADC
             if (settings.pty == 2) {
-                settings.factor  = parseFloat(settings.factor);
-                settings.offset  = parseFloat(settings.offset);
-
-                if (!settings.factor) {
-                    settings.factor = 1;
-                    adapter.log.error('Invalid factor 0 for port ' + p + '/"' + settings.name + '". Set factor to 1');
-                }
+                settings.factor  = parseFloat(settings.factor || 1);
+                settings.offset  = parseFloat(settings.offset || 0);
 
                 obj.common.write = false;
                 obj.common.read  = true;

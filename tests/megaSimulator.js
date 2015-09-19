@@ -152,7 +152,11 @@ function getState(port) {
     if (ports[port].pty == 0) {
         return (ports[port].value ? 'ON' : 'OFF') + '/' + (ports[port].counter || 0);
     } else if (ports[port].pty == 1) {
-        return (ports[port].value ? 'ON' : 'OFF');
+        if (ports[port].m) {
+            return (ports[port].value);
+        } else {
+            return (ports[port].value ? 'ON' : 'OFF');
+        }
     } else if (ports[port].pty == 2) {
         return (ports[port].value || 0);
     } else if (ports[port].pty == 3 && (ports[port].d == 0 || ports[port].d == 3 || ports[port].d == 4)) {
