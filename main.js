@@ -60,6 +60,9 @@ adapter.on('stateChange', function (id, state) {
             if (ports[id].common.type == 'boolean') {
                 sendCommand(ports[id].native.port, state.val);
             } else {
+                ports[id].native.offset = parseFloat(ports[id].native.offset || 0) || 0;
+                ports[id].native.factor = parseFloat(ports[id].native.factor || 1) || 1;
+
                 state.val = (state.val - ports[id].native.offset) / ports[id].native.factor;
                 state.val = Math.round(state.val);
 
