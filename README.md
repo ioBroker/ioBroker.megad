@@ -51,12 +51,12 @@ All ports, that are desired to be used must be configured in right order. Follow
 
 For input:
 ```
-ioBrokerValue = (MegaValue / 1023) * factor + offset;
+ioBrokerValue = MegaValue * factor + offset;
 ```
 
 For output: 
 ```
-MegaValue = ((ioBrokerValue - offset) / factor) * 255;
+MegaValue = (ioBrokerValue - offset) / factor;
 ```
 
 To get the range of the analog value from 100 to 500 set the factor as 400 and offset = 100.
@@ -97,13 +97,13 @@ To get the range of the analog value from 100 to 500 set the factor as 400 and o
 Для выхода:
 
 ```
-MegaЗначение = ((ioBrokerЗначение - Сдвиг) / Множитель) * 255;
+MegaЗначение = (ioBrokerЗначение - Сдвиг) / Множитель;
 ```
 
 Для входа:
 
 ```
-ioBrokerЗначение = (MegaЗначение / 1023) * Множитель + Сдвиг;
+ioBrokerЗначение = MegaЗначение * Множитель + Сдвиг;
 ```
 
 Например, что бы получить интервал значений от 100 до 500 нужно установить сдиг 100 и множитель 400.
