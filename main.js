@@ -382,7 +382,7 @@ function writeConfigDevice(ip, pass, config, callback) {
             return callback('Device with "' + ip + '" is not reachable from ioBroker.');
         }
         options.path += '&sip=' + sip + (config.port ? ':' + config.port : '');
-        options.path += '&sct=' + encodeURIComponent('/' + adapter.instance + '/');
+        options.path += '&sct=' + encodeURIComponent(adapter.instance + '/');
     }
 
     adapter.log.info('Write config for device: http://' + ip + options.path);

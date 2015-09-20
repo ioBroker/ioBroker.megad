@@ -114,6 +114,9 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
+### 0.2.9 (2015-09-20)
+* (bluefox) change server script from "/0/" to "0/"
+
 ### 0.2.8 (2015-09-19)
 * (bluefox) fix PWM output
 
