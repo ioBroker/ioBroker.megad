@@ -649,7 +649,7 @@
                     return;
                 }
                 //OFF;OFF/0;OFF/0;25;temp:45.6;temp:45.6/hum:27
-                var _ports = msg.response.split(';');
+                var _ports = msg.response ? msg.response.split(';') : [];
                 var settingsPorts =  msg.ports || [];
                 var aPorts = [];
                 for (var p = 0; p < _ports.length; p++) {

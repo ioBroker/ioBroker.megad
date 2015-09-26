@@ -462,7 +462,7 @@ function requestProcessor(req, res) {
                 text = '<p>P' + args.pn + ' - ADC</p>';
                 text += '255 - NC. Не сконфигурирован';
             }
-            fs.writeFileSync(__dirname + '/config.json', JSON.stringify({config: config, ports: ports}, null, 2));
+            fs.writeFileSync(__dirname + '/' + (process.argv[2] || 'config.json'), JSON.stringify({config: config, ports: ports}, null, 2));
             res.writeHead(200, {'Content-Type': 'text/html'});
             res.end(text, 'utf8');
         }
@@ -525,7 +525,7 @@ function requestProcessor(req, res) {
             console.log('Set new own IP address: ' + config.eip + ' => ' + args.eip);
             config.eip = args.eip;
         }
-        fs.writeFileSync(__dirname + '/config.json', JSON.stringify({config: config, ports: ports}, null, 2));
+        fs.writeFileSync(__dirname + '/' + (process.argv[2] || 'config.json'), JSON.stringify({config: config, ports: ports}, null, 2));
         var text = '<a href=/sec>Back</a> | <a href=/sec/?cf=2>' +
             'Megad-ID</a><br><form action=/sec/>' +
             '<input type=hidden name=cf value=1>' +
@@ -714,7 +714,7 @@ function simulateServicePort() {
         }
     });
 
-    server.on("listening", function () {
+    server.on('listening', function () {
         var address = server.address();
         console.log("service listening on " + address.address + ":" + address.port);
     });
@@ -725,14 +725,14 @@ function simulateServicePort() {
 function main() {
     simulateServicePort();
 
-    if (fs.existsSync(__dirname + '/config.json')) {
+    if (fs.existsSync(__dirname + '/' + (process.argv[2] || 'config.json'))) {
         try {
-            var cfg = fs.readFileSync(__dirname + '/config.json').toString();
+            var cfg = fs.readFileSync(__dirname + '/' + (process.argv[2] || 'config.json')).toString();
             cfg = JSON.parse(cfg);
             config = cfg.config;
             ports  = cfg.ports;
         } catch (e) {
-            console.log('Cannot parse or read config.json');
+            console.log('Cannot parse or read ' + '/' + (process.argv[2] || 'config.json'));
         }
     }
 

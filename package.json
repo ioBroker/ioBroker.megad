@@ -1,6 +1,6 @@
 {
   "name": "iobroker.megad",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "Lets control the MegaD-328 over ethernet (http://www.ab-log.ru/smart-house/ethernet/megad-328) from ioBroker",
   "author": {
     "name": "bluefox",

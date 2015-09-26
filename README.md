@@ -114,6 +114,9 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
+### 0.2.10 (2015-09-26)
+* (bluefox) return "OK" and not "OK->" to other than 0 instances
+
 ### 0.2.9 (2015-09-20)
 * (bluefox) change server script from "/0/" to "0/"
 

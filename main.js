@@ -1050,7 +1050,7 @@ function restApi(req, res) {
             if (parseInt(device, 10) == device) {
                 adapter.sendTo('megad.' + device, 'send', parseInt(values.pt, 10));
                 res.writeHead(0);
-                res.end('OK->');
+                res.end('OK', 'utf8');
             } else {
                 // read all instances of megaD
                 adapter.getForeignObjects('system.adapter.megad.*', 'instance', function (err, arr) {
@@ -1059,7 +1059,7 @@ function restApi(req, res) {
                             if (arr[id].native.name == device) {
                                 adapter.sendTo(id, 'send', parseInt(values.pt, 10));
                                 res.writeHead(0);
-                                res.end('OK->');
+                                res.end('OK', 'utf8');
                                 return;
                             }
                         }
