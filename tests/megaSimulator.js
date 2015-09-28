@@ -264,6 +264,26 @@ function requestProcessor(req, res) {
                         return;
                     }
                 }
+                if (args.d !== undefined) {
+                    if (args.d == 0 || args.d == 1) {
+                        console.log('Set new debounce      for port ' + args.pn + ': ' + ports[args.pn].d + ' => ' + args.d);
+                        ports[args.pn].d = args.d;
+                    } else {
+                        res.writeHead(500, {'Content-Type': 'text/html'});
+                        res.end('Invalid port mode: ' + args.d, 'utf8');
+                        return;
+                    }
+                }
+                if (args.misc !== undefined) {
+                    if (args.misc == 0 || args.misc == 1) {
+                        console.log('Set new misc          for port ' + args.pn + ': ' + ports[args.pn].misc + ' => ' + args.misc);
+                        ports[args.pn].misc = args.misc;
+                    } else {
+                        res.writeHead(500, {'Content-Type': 'text/html'});
+                        res.end('Invalid port mode: ' + args.misc, 'utf8');
+                        return;
+                    }
+                }
                 // show settings
                 text = '<p>P' + args.pn + ' - Input</p>';
                 text += '<p title="Сценарий по умолчанию, в котором задано управление Выходами (OUT) устройства в случае изменения состояния входа. (макс: 11 байт). Примечание. Сценарий выполняется всегда, если не указан сервер или если сервер указан, но не отвечает в течение 3 секунд. Сценарий по умолчанию не выполняется, если сервер указан и доступен.">' +

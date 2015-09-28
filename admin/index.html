@@ -99,13 +99,13 @@
         "Find devices":         {"en": "Find devices",          "de": "Suche Geräte",               "ru": "Искать устройства"},
         "Internal Sensor":      {"en": "Internal Sensor",       "de": "Eingebauter Sensor",         "ru": "Internal Sensor"},
         "PWM:":                 {"en": "PWM:",                  "de": "PWM:",                       "ru": "PWM:"},
-        "Sensor type:":         {"en": "Sensor type:",          "de": "Sensortyp:",                 "ru": "Тип сенсора:"}
+        "Sensor type:":         {"en": "Sensor type:",          "de": "Sensortyp:",                 "ru": "Тип сенсора:"},
+        "De-bounce:":           {"en": "De-bounce:",            "de": "Entprellen:",                "ru": "Дребезг:"}
     };
     var onchange = null;
     var rooms    = [];
     var ports    = [];
     var active   = false;
-
 
     function showOnePort(index, portSettings) {
         // name, room, role, pty(type), ecmd(Action), eth(net action), m(mode), d(default state), pwm(0-255), misc (threshold)
@@ -196,6 +196,8 @@
                 text += '<option value="1" ' + ((portSettings.d == 1) ? 'selected' : '') + '>' + _('on') + '</option>';
                 text += '</select>';
             }
+        } else if (portSettings.pty == 0) {
+            text += _('De-bounce:') + ' <input type="checkbox" class="tvalue" data-type="d" data-port="' + index + '"/>';
         }
 
         //Sensor type
@@ -232,7 +234,7 @@
 
         if (portSettings.pty == 0) {
             if (portSettings.m == 1) {
-                text += ', ' + _('Long:')   + ' <input type="checkbox" class="tvalue" data-type="long"   data-port="' + index + '" ' + (portSettings.long   ? 'checked' : '') + '/>, ';
+                text += ', ' + _('Long:')   + ' <input type="checkbox" class="tvalue" data-type="long" data-port="' + index + '" ' + (portSettings.long   ? 'checked' : '') + '/>, ';
             }
             text +=        _('Double:') + ' <input type="checkbox" class="tvalue" data-type="double" data-port="' + index + '" ' + (portSettings.double ? 'checked' : '') + '/>';
         }
@@ -580,6 +582,10 @@
         $('#discover').button({
             icons: {primary: 'ui-icon-refresh'}
         }).click(function () {
+            if (!active) {
+                showMessage(_('Enable adapter first'), 'Warning', 'info');
+                return;
+            }
             $(this).button('disable');
             sendTo(null, 'discover', null, function (msg) {
                 $('#discover').button('enable');
@@ -664,6 +670,8 @@
                         aPorts[p].ecmd    = aPorts[p].ecmd || '';
                         aPorts[p].eth     = aPorts[p].eth  || '';
                         aPorts[p].m       = aPorts[p].m    || 0;
+                        aPorts[p].misc    = aPorts[p].misc || 0;
+                        aPorts[p].d       = aPorts[p].d    || 0;
 
                         aPorts[p].long    = !!ports[p].long;
                         aPorts[p].double  = !!ports[p].double;
@@ -801,7 +809,7 @@
     <table><tr><td><img src="megad.png"></td><td><h3 class="translate">MegaD-328 adapter settings</h3></td></tr></table>
 
     <table>
-        <tr><td class="translate" style="text-align: right">IP:</td><td>                                  <input  class="value" id="ip"/></select></td>
+        <tr><td class="translate" style="text-align: right">IP:</td><td>                    <input  class="value" id="ip"/></select></td>
             <td style="padding-left: 10px"><select id="ips" style="display:none"></select>&nbsp;<button id="discover" class="translateB">Find devices</button></td></tr>
         <tr><td class="translate" style="text-align: right">MegaD Name:</td><td>            <input  class="value" id="name"/></td>
             <td class="translate" style="text-align: right">Poll interval (sec):</td><td>   <input  class="value" id="pollInterval"  maxlength="3"/></td>

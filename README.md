@@ -114,6 +114,11 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
+### 0.2.11 (2015-09-28)
+* (bluefox) disable discover button if adapter disabled
+* (bluefox) fix discover function
+* (bluefox) write for inputs misc=1 and add de-bounce parameter
+
 ### 0.2.10 (2015-09-26)
 * (bluefox) return "OK" and not "OK->" to other than 0 instances
 

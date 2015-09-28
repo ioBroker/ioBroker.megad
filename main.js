@@ -154,9 +154,10 @@ function writeConfigOne(ip, pass, _settings, callback, port, errors) {
 
     // Input
     if (settings.pty == 0) {
+        settings.d    = parseInt(settings.d, 10) || 0;
         settings.ecmd = settings.ecmd || '';
         settings.eth  = '';//settings.eth  || '';
-        options.path += '&pty=0&m=' + (settings.m || 0) + '&ecmd=' + encodeURIComponent((settings.ecmd || '').trim()) + '&eth=';
+        options.path += '&pty=0&m=' + (settings.m || 0) + '&misc=1&d=' + settings.d + '&ecmd=' + encodeURIComponent((settings.ecmd || '').trim()) + '&eth=';
     } else
     if (settings.pty == 1) {
         settings.pwm = parseInt(settings.pwm, 10) || 0;
@@ -667,11 +668,8 @@ function discoverMegaOnIP(ip, callback) {
 
     var dgram = require('dgram');
     var message = new Buffer([0xAA, 0, 12]);
-    var client = dgram.createSocket("udp4");
-    client.send(message, 0, message.length, 52000, ip, function (err) {
-        console.log('Discover sent to ' + ip);
-    });
-    var result = [];
+    var client = dgram.createSocket({type: 'udp4', reuseAddr: true});
+    client.bind(42000);
     client.on('message', function (msg, rinfo) {
         if (msg[0] == 0xAA) {
             result.push(rinfo.address);
@@ -680,6 +678,10 @@ function discoverMegaOnIP(ip, callback) {
         console.log('Received %d bytes from %s:%d\n',
             msg.length, rinfo.address, rinfo.port);
     });
+    client.send(message, 0, message.length, 52000, ip, function (err) {
+        console.log('Discover sent to ' + ip);
+    });
+    var result = [];
 
     setTimeout(function () {
         client.close();
@@ -1049,7 +1051,7 @@ function restApi(req, res) {
             // Try to find name of the instance
             if (parseInt(device, 10) == device) {
                 adapter.sendTo('megad.' + device, 'send', parseInt(values.pt, 10));
-                res.writeHead(0);
+                res.writeHead(200, {'Content-Type': 'text/html'});
                 res.end('OK', 'utf8');
             } else {
                 // read all instances of megaD
@@ -1058,7 +1060,7 @@ function restApi(req, res) {
                         for (var id in arr) {
                             if (arr[id].native.name == device) {
                                 adapter.sendTo(id, 'send', parseInt(values.pt, 10));
-                                res.writeHead(0);
+                                res.writeHead(200, {'Content-Type': 'text/html'});
                                 res.end('OK', 'utf8');
                                 return;
                             }
