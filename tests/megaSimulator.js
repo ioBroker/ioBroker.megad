@@ -728,7 +728,7 @@ function simulateServicePort() {
     server.on('message', function (msg, rinfo) {
         console.log("server got: " + msg + " from " + rinfo.address + ":" + rinfo.port);
         if (msg[0] == 0xAA && msg[1] == 0 && msg[2] == 12) {
-            server.send(new Buffer([0xAA]), 0, 1, rinfo.port, rinfo.address, function(err) {
+            server.send(new Buffer([0xAA, 0xc0, 0xa8, 0x00, 0x0e]), 0, 5, rinfo.port, rinfo.address, function(err) {
                 if (err) console.error(err);
             });
         }
