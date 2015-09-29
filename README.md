@@ -114,6 +114,10 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
+### 0.2.12 (2015-09-29)
+* (bluefox) fix discover function
+* (bluefox) generate true and false for simple clicks
+
 ### 0.2.11 (2015-09-28)
 * (bluefox) disable discover button if adapter disabled
 * (bluefox) fix discover function

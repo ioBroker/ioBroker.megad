@@ -668,7 +668,7 @@ function discoverMegaOnIP(ip, callback) {
 
     var dgram = require('dgram');
     var message = new Buffer([0xAA, 0, 12]);
-    var client = dgram.createSocket({type: 'udp4', reuseAddr: true});
+    var client = dgram.createSocket('udp4');
     client.bind(42000);
     client.on('message', function (msg, rinfo) {
         if (msg[0] == 0xAA) {
@@ -931,7 +931,7 @@ function triggerShortPress(port) {
                 adapter.setState(config.id, false, true);
             }, 100);
         } else {
-            adapter.setState(config.id, config.value, true);
+            adapter.setState(config.id, !!config.value, true);
         }
     }
 }

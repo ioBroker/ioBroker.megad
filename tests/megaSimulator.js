@@ -375,6 +375,16 @@ function requestProcessor(req, res) {
                         return;
                     }
                 }
+                if (args.naf !== undefined) {
+                    if (args.naf == 0 || args.naf == 1) {
+                        console.log('Set new naf           for port ' + args.pn + ': ' + ports[args.pn].naf + ' => ' + args.naf);
+                        ports[args.pn].naf = args.naf;
+                    } else {
+                        res.writeHead(500, {'Content-Type': 'text/html'});
+                        res.end('Invalid port default state: ' + args.naf, 'utf8');
+                        return;
+                    }
+                }
                 if (args.misc !== undefined) {
                     console.log('Set new threshold     for port ' + args.pn + ': ' + ports[args.pn].misc + ' => ' + args.misc);
                     ports[args.pn].misc = args.misc;
