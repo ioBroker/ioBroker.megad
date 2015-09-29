@@ -145,10 +145,17 @@
                 'normal closed'
             ];
         } else if (portSettings.pty == 1) {
-            modes = [
-                'switch',
-                'PWM'
-            ];
+            if (index == 10 || index == 12 || index == 13) {
+                modes = [
+                    'switch',
+                    'PWM'
+                ];
+            } else {
+                modes = [
+                    'switch'
+                ];
+            }
+
         } else if (portSettings.pty == 2 || (portSettings.pty == 3 && portSettings.d == 3)) {
             modes = [
                 'not monitored',
@@ -179,7 +186,7 @@
         text += '<td class="tspace">';
 
         // ecmd(Action) and eth(net action)
-        if (portSettings.pty == 0 || portSettings.pty == 2 || portSettings.pty == 3) {
+        if (portSettings.pty == 0 || portSettings.pty == 2 || (portSettings.pty == 3 && portSettings.d != 1 && portSettings.d != 2)) {
             // ecmd(Action)
             text += _('Action:') + ' <input class="tvalue" data-type="ecmd" type="text" data-port="' + index + '" value="' + (portSettings.ecmd || '') + '"  style="width: 70px" maxsize="11"/>';
             // eth(net action)
@@ -218,7 +225,7 @@
             text += '</select>';
         }
         //pwm
-        if (portSettings.pty == 1 && portSettings.m == 1) {
+        if (portSettings.pty == 1 && portSettings.m == 1 && (index == 10 || index == 12 || index == 13)) {
             text += _('PWM:') + ' <input class="tvalue" data-type="pwm" type="text" data-port="' + index + '" value="' + (portSettings.pwm || 0) + '" size=4 maxsize="3"/>';
         }
 
@@ -265,8 +272,8 @@
 
                 if (ports[index].eth    === undefined) ports[index].eth = '';
                 if (ports[index].ecmd   === undefined) ports[index].ecmd = '';
-                if (ports[index].d      !== undefined) delete ports[index].d;
-                if (ports[index].misc   !== undefined) delete ports[index].misc;
+                if (ports[index].d      === undefined) ports[index].d = 0;
+                if (ports[index].misc   === undefined) ports[index].misc = 1;
                 if (ports[index].m      === undefined) ports[index].m = 0;
                 if (ports[index].m > 2) ports[index].m = 0;
 
@@ -672,6 +679,10 @@
                         aPorts[p].m       = aPorts[p].m    || 0;
                         aPorts[p].misc    = aPorts[p].misc || 0;
                         aPorts[p].d       = aPorts[p].d    || 0;
+                        // Данная галочка говорит нам, что: если сервер доступен то используется режим P&R. Если нет, то: mode P(0), act 7:2
+                        if (aPorts[p].misc) {
+                            aPorts[p].m = 1;
+                        }
 
                         aPorts[p].long    = !!ports[p].long;
                         aPorts[p].double  = !!ports[p].double;

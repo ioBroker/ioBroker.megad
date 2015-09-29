@@ -1,7 +1,7 @@
 {
     "common": {
         "name":                     "megad",
-        "version":                  "0.2.12",
+        "version":                  "0.2.13",
         "title":                    "Mega-D Adapter",
         "desc":                     {
             "en": "Lets control the MegaD-328 over ethernet/internet (http://www.ab-log.ru/smart-house/ethernet/megad-328)",
@@ -22,6 +22,7 @@
 		"enabled":                  true,
         "extIcon":                  "https://raw.githubusercontent.com/ioBroker/ioBroker.megad/master/admin/megad.png",
         "type":                     "hardware",
+        "localLink":                "http://%native_ip%/%password%",
         "config": {
             "width":     1050,
             "height":    800,

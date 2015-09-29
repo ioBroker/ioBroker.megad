@@ -114,6 +114,12 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
+### 0.2.13 (2015-09-29)
+* (bluefox) add link to admin (only with admin version >= 0.5.14)
+* (bluefox) use misc flag 
+* (bluefox) enable pwm only for ports 10,12,13
+* (bluefox) disable action for DHT11/22
+
 ### 0.2.12 (2015-09-29)
 * (bluefox) fix discover function
 * (bluefox) generate true and false for simple clicks
