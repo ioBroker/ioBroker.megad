@@ -669,7 +669,14 @@ function discoverMegaOnIP(ip, callback) {
     var dgram = require('dgram');
     var message = new Buffer([0xAA, 0, 12]);
     var client = dgram.createSocket('udp4');
-    client.bind(42000);
+    client.on('error', function (err) {
+        adapter.log.error(err);
+    });
+
+    client.bind(42000, function (){
+        client.setBroadcast(true);
+    })
+
     client.on('message', function (msg, rinfo) {
         if (msg[0] == 0xAA) {
             result.push(rinfo.address);

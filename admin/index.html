@@ -606,7 +606,7 @@
                         for (var d = 0; d < msg.devices.length; d++) {
                             text += '<option value="' + msg.devices[d] + '">' + msg.devices[d] + '</option>';
                         }
-                        $('#ips').show().html(text);
+                        $('#ips').show().html(text).attr('size', msg.devices.length > 4 ? 5 : msg.devices.length + 1);
                     }
                 }
             });

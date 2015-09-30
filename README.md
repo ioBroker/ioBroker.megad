@@ -114,6 +114,9 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
+### 0.2.14 (2015-09-30)
+* (bluefox) fix discover function
+
 ### 0.2.13 (2015-09-29)
 * (bluefox) add link to admin (only with admin version >= 0.5.14)
 * (bluefox) use misc flag 
