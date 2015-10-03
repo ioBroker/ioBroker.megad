@@ -114,6 +114,9 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
+### 1.0.0 (2015-10-03)
+* (bluefox) Fix small error with Wire1 and threshold mode
+
 ### 0.2.14 (2015-09-30)
 * (bluefox) fix discover function
 

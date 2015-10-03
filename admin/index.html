@@ -692,10 +692,10 @@
                         // output digital port
                         aPorts[p].name    = ports[p].name || ('P' + p);
                         aPorts[p].m       = aPorts[p].m   || 0;
-                        aPorts[p].d       = ports[p].d    || 0;
-                        aPorts[p].pwm     = ports[p].pwm  || 0;
+                        aPorts[p].d       = aPorts[p].d   || 0;
+                        aPorts[p].pwm     = aPorts[p].pwm || 0;
 
-                        aPorts[p].role    = ports[p].role || 'state';
+                        aPorts[p].role    = ports[p].role || 'button';
                     } else
                     if (aPorts[p].pty == 2) {
                         // ADC port
@@ -712,7 +712,8 @@
                     if (aPorts[p].pty == 3) {
                         // temperature - digital sensor
                         aPorts[p].name    = ports[p].name || ('P' + p);
-                        aPorts[p].m       = aPorts[p].m || _ports[p].indexOf('hum') != -1 ? 1 : 0;
+                        aPorts[p].m       = aPorts[p].m || (_ports[p].indexOf('hum') != -1 ? 1 : 0);
+                        aPorts[p].d       = aPorts[p].d || 0;
                         aPorts[p].role    = ports[p].role || 'value.temperature';
                     } else if (_ports[p].indexOf('temp:') != -1) {
                         // temperature - internal sensor
