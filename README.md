@@ -114,8 +114,11 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
+### 1.0.1 (2015-10-03)
+* (bluefox) support of iButton
+
 ### 1.0.0 (2015-10-03)
-* (bluefox) Fix small error with Wire1 and threshold mode
+* (bluefox) Fix small error with 1-Wire and threshold mode
 
 ### 0.2.14 (2015-09-30)
 * (bluefox) fix discover function

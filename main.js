@@ -114,7 +114,16 @@ function processMessages(ignore) {
 
 // Because the only one port is occupied by first instance, the changes to other devices will be send with messages
 function processMessage(message) {
-    var port = parseInt(message, 10);
+    var port;
+    if (typeof message === 'string') {
+        try {
+            message = JSON.parse(message);
+        } catch(err) {
+            adapter.log.error('Cannot parse: ' + message);
+            return;
+        }
+    }
+    port = message.pt;
 
     // Command from instance with web server
     if (adapter.config.ports[port]) {
@@ -122,6 +131,9 @@ function processMessage(message) {
         if (adapter.config.ports[port].pty == 0 && adapter.config.ports[port].m != 1) {
             adapter.config.ports[port].value = (adapter.config.ports[port].m == 0);
             processClick(port);
+        } else if (adapter.config.ports[_port].pty == 3 && adapter.config.ports[_port].d == 4) {
+            // process iButton
+            adapter.setState(adapter.config.ports[port].id, message.val, true);
         } else {
             adapter.log.debug("reported new value for port " + port + ", request actual value");
             // Get value from analog port
@@ -1057,7 +1069,7 @@ function restApi(req, res) {
         if (device && values.pt !== undefined) {
             // Try to find name of the instance
             if (parseInt(device, 10) == device) {
-                adapter.sendTo('megad.' + device, 'send', parseInt(values.pt, 10));
+                adapter.sendTo('megad.' + device, 'send', {pt: parseInt(values.pt, 10), val: values.ib});
                 res.writeHead(200, {'Content-Type': 'text/html'});
                 res.end('OK', 'utf8');
             } else {
@@ -1066,7 +1078,7 @@ function restApi(req, res) {
                     if (arr) {
                         for (var id in arr) {
                             if (arr[id].native.name == device) {
-                                adapter.sendTo(id, 'send', parseInt(values.pt, 10));
+                                adapter.sendTo(id, 'send', {pt: parseInt(values.pt, 10), val: values.ib});
                                 res.writeHead(200, {'Content-Type': 'text/html'});
                                 res.end('OK', 'utf8');
                                 return;
@@ -1093,7 +1105,10 @@ function restApi(req, res) {
             if (adapter.config.ports[_port].pty == 0 && adapter.config.ports[_port].m != 1) {
                 adapter.config.ports[_port].value = (adapter.config.ports[_port].m == 0);
                 processClick(_port);
-            } else {
+            } else if (adapter.config.ports[_port].pty == 3 && adapter.config.ports[_port].d == 4) {
+                // process iButton
+                adapter.setState(adapter.config.ports[_port].id, values.ib, true);
+            } else  {
                 adapter.log.debug("reported new value for port " + _port + ", request actual value");
                 // Get value from analog port
                 getPortState(_port, processPortState);
@@ -1308,33 +1323,39 @@ function syncObjects() {
                 obj.common.write = false;
                 obj.common.read  = true;
                 obj.common.def   = 0;
-                obj.common.min   = -30;
-                obj.common.max   = 30;
-                obj.common.unit  = '°C';
-                obj.common.desc  = 'P' + p + ' - temperature';
-                obj.common.type  = 'number';
-                if (!obj.common.role) obj.common.role = 'value.temperature';
-
                 if (settings.d == 1 || settings.d == 2) {
-                    obj1 = {
-                        _id: adapter.namespace + '.' + id + '_humidity',
-                        common: {
-                            name:  obj.common.name + '_humidity',
-                            role:  'value.humidity',
-                            write: false,
-                            read:  true,
-                            unit:  '%',
-                            def:   0,
-                            min:   0,
-                            max:   100,
-                            desc:  'P' + p + ' - humidity',
-                            type:  'number'
-                        },
-                        native: {
-                            port: p
-                        },
-                        type: 'state'
-                    };
+                    obj.common.min = -30;
+                    obj.common.max = 30;
+                    obj.common.unit = '°C';
+                    obj.common.desc = 'P' + p + ' - temperature';
+                    obj.common.type = 'number';
+                    if (!obj.common.role) obj.common.role = 'value.temperature';
+
+                    if (settings.d == 1 || settings.d == 2) {
+                        obj1 = {
+                            _id: adapter.namespace + '.' + id + '_humidity',
+                            common: {
+                                name: obj.common.name + '_humidity',
+                                role: 'value.humidity',
+                                write: false,
+                                read: true,
+                                unit: '%',
+                                def: 0,
+                                min: 0,
+                                max: 100,
+                                desc: 'P' + p + ' - humidity',
+                                type: 'number'
+                            },
+                            native: {
+                                port: p
+                            },
+                            type: 'state'
+                        };
+                    }
+                } else if (settings.d == 4) { // iButton
+                    obj.common.desc = 'P' + p + ' - iButton';
+                    obj.common.type = 'string';
+                    obj.common.def  = '';
                 }
             } else {
                 continue;

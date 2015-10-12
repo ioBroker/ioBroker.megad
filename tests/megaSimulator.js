@@ -159,9 +159,11 @@ function getState(port) {
         }
     } else if (ports[port].pty == 2) {
         return (ports[port].value || 0);
-    } else if (ports[port].pty == 3 && (ports[port].d == 0 || ports[port].d == 3 || ports[port].d == 4)) {
+    } else if (ports[port].pty == 3 && (ports[port].d == 0 || ports[port].d == 3)) {
         return 'temp:' + (ports[port].value || 0);
-    } if (ports[port].pty == 3) {
+    } else if (ports[port].pty == 3 && ports[port].d == 4) {
+        return 'ID:' + (ports[port].value || 0);
+    } else if (ports[port].pty == 3) {
         return 'temp:' + (ports[port].value || 0) + '/hum:' + (ports[port].humidity || 0);
     }
 }
@@ -485,7 +487,7 @@ function requestProcessor(req, res) {
                 ];
 
                 text += '<p title="Тип подключенного датчика">' +
-                    'm - Sensor: ' + ports[args.pn].d + ' - ' + modes[ports[args.pn].d || 0] + '</p>';
+                    'd - Sensor: ' + ports[args.pn].d + ' - ' + modes[ports[args.pn].d || 0] + '</p>';
             } else
             // 255 - NC. Не сконфигурирован
             {
@@ -800,14 +802,18 @@ function main() {
                 } else
                 if (ports[port].pty == 3) {
                     print = true;
-                    ports[port].value = parseFloat(ports[port].value) || 0;
-                    ports[port].value = Math.round(ports[port].value * 10 + 1) / 10;
-                    if (ports[port].value > 30) ports[port].value = -10;
+                    if (ports[port].d == 4) {
+                        ports[port].value = 'ABC' + ('000000' + (Math.round(Math.random() * 10000)).toString()).slice(-6);
+                    } else {
+                        ports[port].value = parseFloat(ports[port].value) || 0;
+                        ports[port].value = Math.round(ports[port].value * 10 + 1) / 10;
+                        if (ports[port].value > 30) ports[port].value = -10;
 
-                    if (ports[port].m) {
-                        ports[port].humidity = parseFloat(ports[port].humidity) || 0;
-                        ports[port].humidity = Math.round(ports[port].humidity * 10 + 3) / 10;
-                        if (ports[port].humidity > 100) ports[port].humidity = 0;
+                        if (ports[port].d == 1 || ports[port].d == 2) {
+                            ports[port].humidity = parseFloat(ports[port].humidity) || 0;
+                            ports[port].humidity = Math.round(ports[port].humidity * 10 + 3) / 10;
+                            if (ports[port].humidity > 100) ports[port].humidity = 0;
+                        }
                     }
                     //trigger(port);
                 }
