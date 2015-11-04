@@ -39,7 +39,7 @@ adapter.on('stateChange', function (id, state) {
             return;
         }
 
-        adapter.log.info("try to control " + id + " with " + state.val);
+        adapter.log.info('try to control ' + id + ' with ' + state.val);
 
         if (state.val === 'false' || state.val === false) state.val = 0;
         if (state.val === 'true'  || state.val === true)  state.val = 1;
@@ -48,12 +48,12 @@ adapter.on('stateChange', function (id, state) {
             // If number => set position
             state.val = parseFloat(state.val);
             if (state.val < 0) {
-                adapter.log.warn(": invalid control value " + state.val + ". Value must be positive");
+                adapter.log.warn(': invalid control value ' + state.val + '. Value must be positive');
                 state.val = 0;
             }
 
             if (ports[id].common.type == 'boolean' && state.val !== 0 && state.val != 1) {
-                adapter.log.warn(": invalid control value " + state.val + ". Value for switch must be 0/false or 1/true");
+                adapter.log.warn(': invalid control value ' + state.val + '. Value for switch must be 0/false or 1/true');
                 state.val = state.val ? 1 : 0;
             }
 
@@ -118,7 +118,7 @@ function processMessage(message) {
     if (typeof message === 'string') {
         try {
             message = JSON.parse(message);
-        } catch(err) {
+        } catch (err) {
             adapter.log.error('Cannot parse: ' + message);
             return;
         }
@@ -128,14 +128,14 @@ function processMessage(message) {
     // Command from instance with web server
     if (adapter.config.ports[port]) {
         // If digital port
-        if (adapter.config.ports[port].pty == 0 && adapter.config.ports[port].m != 1) {
-            adapter.config.ports[port].value = (adapter.config.ports[port].m == 0);
+        if (!adapter.config.ports[port].pty && adapter.config.ports[port].m != 1) {
+            adapter.config.ports[port].value = !adapter.config.ports[port].m;
             processClick(port);
-        } else if (adapter.config.ports[_port].pty == 3 && adapter.config.ports[_port].d == 4) {
+        } else if (adapter.config.ports[port].pty == 3 && adapter.config.ports[port].d == 4) {
             // process iButton
             adapter.setState(adapter.config.ports[port].id, message.val, true);
         } else {
-            adapter.log.debug("reported new value for port " + port + ", request actual value");
+            adapter.log.debug('reported new value for port ' + port + ', request actual value');
             // Get value from analog port
             getPortState(port, processPortState);
         }
@@ -165,7 +165,7 @@ function writeConfigOne(ip, pass, _settings, callback, port, errors) {
     if (settings.ecmd === 'ð=') settings.ecmd = '';
 
     // Input
-    if (settings.pty == 0) {
+    if (!settings.pty) {
         settings.d    = parseInt(settings.d, 10) || 0;
         settings.ecmd = settings.ecmd || '';
         settings.eth  = '';//settings.eth  || '';
@@ -203,7 +203,7 @@ function writeConfigOne(ip, pass, _settings, callback, port, errors) {
         }
     } else
     if (settings.pty == 4) {
-        adapter.log.info('Do not configure internal temperature port ' + config.port);
+        adapter.log.info('Do not configure internal temperature port ' + port);
         return writeConfigOne(ip, pass, _settings, callback, port, errors);
     } else {
         // NC
@@ -236,37 +236,44 @@ function writeConfigOne(ip, pass, _settings, callback, port, errors) {
         errors[port] = err;
         setTimeout(function () {
             writeConfigOne(ip, pass, _settings, callback, port, errors);
-        }, 1000);    });
+        }, 1000);
+    });
 }
 
-function ipToBuffer (ip, buff, offset) {
+function ipToBuffer(ip, buff, offset) {
     offset = ~~offset;
 
     var result;
 
     if (/^(\d{1,3}\.){3,3}\d{1,3}$/.test(ip)) {
         result = buff || new Buffer(offset + 4);
-        ip.split(/\./g).map(function(byte) {
+        ip.split(/\./g).map(function (byte) {
             result[offset++] = parseInt(byte, 10) & 0xff;
         });
     } else if (/^[a-f0-9:]+$/.test(ip)) {
-        var s = ip.split(/::/g, 2),
-            head = (s[0] || '').split(/:/g, 8),
-            tail = (s[1] || '').split(/:/g, 8);
+        var s    = ip.split(/::/g, 2);
+        var head = (s[0] || '').split(/:/g, 8);
+        var tail = (s[1] || '').split(/:/g, 8);
 
         if (tail.length === 0) {
             // xxxx::
-            while (head.length < 8) head.push('0000');
+            while (head.length < 8) {
+                head.push('0000');
+            }
         } else if (head.length === 0) {
             // ::xxxx
-            while (tail.length < 8) tail.unshift('0000');
+            while (tail.length < 8) {
+                tail.unshift('0000');
+            }
         } else {
             // xxxx::xxxx
-            while (head.length + tail.length < 8) head.push('0000');
+            while (head.length + tail.length < 8) {
+                head.push('0000');
+            }
         }
 
         result = buff || new Buffer(offset + 16);
-        head.concat(tail).map(function(word) {
+        head.concat(tail).map(function (word) {
             word = parseInt(word, 16);
             result[offset++] = (word >> 8) & 0xff;
             result[offset++] = word & 0xff;
@@ -279,19 +286,20 @@ function ipToBuffer (ip, buff, offset) {
 }
 
 function ipToString(buff, offset, length) {
+    var i;
     offset = ~~offset;
     length = length || (buff.length - offset);
 
     var result = [];
     if (length === 4) {
         // IPv4
-        for (var i = 0; i < length; i++) {
+        for (i = 0; i < length; i++) {
             result.push(buff[offset + i]);
         }
         result = result.join('.');
     } else if (length === 16) {
         // IPv6
-        for (var i = 0; i < length; i += 2) {
+        for (i = 0; i < length; i += 2) {
             result.push(buff.readUInt16BE(offset + i).toString(16));
         }
         result = result.join(':');
@@ -302,7 +310,8 @@ function ipToString(buff, offset, length) {
     return result;
 }
 
-function ipMask (addr, mask) {
+function ipMask(addr, mask) {
+    var i;
     addr = ipToBuffer(addr);
     mask = ipToBuffer(mask);
 
@@ -310,25 +319,25 @@ function ipMask (addr, mask) {
 
     // Same protocol - do bitwise and
     if (addr.length === mask.length) {
-        for (var i = 0; i < addr.length; i++) {
+        for (i = 0; i < addr.length; i++) {
             result[i] = addr[i] & mask[i];
         }
     } else if (mask.length === 4) {
         // IPv6 address and IPv4 mask
         // (Mask low bits)
-        for (var i = 0; i < mask.length; i++) {
+        for (i = 0; i < mask.length; i++) {
             result[i] = addr[addr.length - 4  + i] & mask[i];
         }
     } else {
         // IPv6 mask and IPv4 addr
-        for (var i = 0; i < result.length - 6; i++) {
+        for (i = 0; i < result.length - 6; i++) {
             result[i] = 0;
         }
 
         // ::ffff:ipv4
         result[10] = 0xff;
         result[11] = 0xff;
-        for (var i = 0; i < addr.length; i++) {
+        for (i = 0; i < addr.length; i++) {
             result[i + 12] = addr[i] & mask[i + 12];
         }
     }
@@ -452,7 +461,7 @@ function writeConfig(obj) {
                     } else {
                         if (obj.callback) adapter.sendTo(obj.from, obj.command, {error: errors}, obj.callback);
                     }
-                }, 1000)
+                }, 1000);
             });
         } else if (config) {
             running = true;
@@ -554,7 +563,7 @@ function detectPortConfig(ip, pass, length, callback, port, result) {
 
                 if (settings.pty == 1) {
                     settings.m   = settings.m   || 0;
-                    settings.pwm = settings.pwm || 0
+                    settings.pwm = settings.pwm || 0;
                 }
                 if (settings.m    !== undefined) settings.m    = parseInt(settings.m,    10);
                 if (settings.d    !== undefined) settings.d    = parseInt(settings.d,    10);
@@ -640,7 +649,7 @@ function detectDeviceConfig(ip, pass, callback) {
         });
     }).on('error', function (err) {
         adapter.log.error(err.message);
-        callback(err)
+        callback(err);
     });
 }
 
@@ -685,9 +694,9 @@ function discoverMegaOnIP(ip, callback) {
         adapter.log.error(err);
     });
 
-    client.bind(42000, function (){
+    client.bind(42000, function () {
         client.setBroadcast(true);
-    })
+    });
 
     client.on('message', function (msg, rinfo) {
         if (msg[0] == 0xAA) {
@@ -720,7 +729,7 @@ function discoverMega(obj) {
                 count++;
                 discoverMegaOnIP(address.address, function (_result) {
                     if (_result && _result.length) {
-                        for(var i = 0; i < _result.length; i++) {
+                        for (var i = 0; i < _result.length; i++) {
                             result.push(_result[i]);
                         }
                     }
@@ -744,12 +753,12 @@ function getPortState(port, callback) {
         port: parts[1] || 80,
         path: '/' + adapter.config.password + '/?pt=' + port + '&cmd=get'
     };
-    adapter.log.debug("getPortState http://" + options.host + options.path);
+    adapter.log.debug('getPortState http://' + options.host + options.path);
 
     http.get(options, function (res) {
         var xmldata = '';
         res.on('error', function (e) {
-            adapter.log.warn("megaD: " + e);
+            adapter.log.warn('megaD: ' + e);
         });
         res.on('data', function (chunk) {
 
@@ -759,15 +768,12 @@ function getPortState(port, callback) {
             if (res.statusCode != 200) {
                 adapter.log.warn('Response code: ' + res.statusCode + ' - ' + xmldata);
             }
-            adapter.log.debug("response for " + adapter.config.ip + "[" + port + ']: ' + xmldata);
+            adapter.log.debug('response for ' + adapter.config.ip + "[" + port + ']: ' + xmldata);
             // Analyse answer and updates staties
             if (callback) callback(port, xmldata);
         });
     }).on('error', function (e) {
-        adapter.log.warn("Got error by request " + e.message);
-        if (typeof simulate !== "undefined") {
-            callback(port, simulate[port]);
-        }
+        adapter.log.warn('Got error by request ' + e.message);
     });
 }
 
@@ -815,11 +821,7 @@ function getPortsState(ip, password, callback) {
         });
     }).on('error', function (e) {
         adapter.log.warn('Got error by request to ' + ip + ': ' + e.message);
-        if (typeof simulate !== 'undefined') {
-            callback('simulation', simulate.join(';'));
-        } else {
-            callback(e.message);
-        }
+        callback(e.message);
     });
 }
 
@@ -909,7 +911,7 @@ function detectDoubleClick(port) {
 
         } else {
 
-            adapter.log.debug("Start timer for " + adapter.config.doublePress + "ms to detect double click on " + port);
+            adapter.log.debug('Start timer for ' + adapter.config.doublePress + 'ms to detect double click on ' + port);
 
             config.doubleTimer = setTimeout(function () {
                 adapter.log.debug('Generate short click on port ' + port);
@@ -941,7 +943,7 @@ function triggerShortPress(port) {
     } else {
         if (config.m != 1) {
             if (config.oldValue === undefined || config.oldValue === null) return;
-            adapter.log.debug("reported new state for port " + port + " - " + config.value);
+            adapter.log.debug('reported new state for port ' + port + ' - ' + config.value);
 
             adapter.setState(config.id, true, true);
 
@@ -965,11 +967,11 @@ function processPortState(_port, value) {
 	}
 	
     if (value !== null) {
-        var rawValue = value;
+        var hm = null;
+        var f;
         // Value can be OFF/5 or 27/0 or 27 or ON
         if (typeof value == 'string') {
             var t = value.split('/');
-            var hm = null;
             var m = value.match(/temp:([0-9.]+)/);
             if (m) {
                 hm = value.match(/hum:([0-9.]+)/);
@@ -991,11 +993,11 @@ function processPortState(_port, value) {
         if (value !== _ports[_port].value) {
             _ports[_port].oldValue = _ports[_port].value;
             _ports[_port].value    = value;
-            if (_ports[_port].pty == 0) {
+            if (!_ports[_port].pty) {
                 processClick(_port);
             } else
             if (_ports[_port].pty == 2) {
-                var f = value * _ports[_port].factor + _ports[_port].offset;
+                f = value * _ports[_port].factor + _ports[_port].offset;
                 value = Math.round(value * 1000) / 1000;
 
                 adapter.log.debug('detected new value on port [' + _port + ']: ' + value + ', calc state ' + f);
@@ -1010,7 +1012,7 @@ function processPortState(_port, value) {
             } else
             if (_ports[_port].pty == 1) {
                 if (_ports[_port].m) {
-                    var f = value * _ports[_port].factor + _ports[_port].offset;
+                    //f = value * _ports[_port].factor + _ports[_port].offset;
                     value = Math.round(value * 1000) / 1000;
 
                     adapter.log.debug('detected new value on port [' + _port + ']: ' + value);
@@ -1102,14 +1104,14 @@ function restApi(req, res) {
 
         if (adapter.config.ports[_port]) {
             // If digital port
-            if (adapter.config.ports[_port].pty == 0 && adapter.config.ports[_port].m != 1) {
-                adapter.config.ports[_port].value = (adapter.config.ports[_port].m == 0);
+            if (!adapter.config.ports[_port].pty && adapter.config.ports[_port].m != 1) {
+                adapter.config.ports[_port].value = !adapter.config.ports[_port].m;
                 processClick(_port);
             } else if (adapter.config.ports[_port].pty == 3 && adapter.config.ports[_port].d == 4) {
                 // process iButton
                 adapter.setState(adapter.config.ports[_port].id, values.ib, true);
-            } else  {
-                adapter.log.debug("reported new value for port " + _port + ", request actual value");
+            } else {
+                adapter.log.debug('reported new value for port ' + _port + ', request actual value');
                 // Get value from analog port
                 getPortState(_port, processPortState);
             }
@@ -1162,7 +1164,7 @@ function sendCommand(port, value) {
             }
         });
     }).on('error', function (e) {
-        adapter.log.warn("Got error by post request " + e.toString());
+        adapter.log.warn('Got error by post request ' + e.toString());
     });
 }
 
@@ -1233,7 +1235,7 @@ function syncObjects() {
             var obj2 = null;
 
             // input
-            if (settings.pty == 0) {
+            if (!settings.pty) {
                 obj.common.write = false;
                 obj.common.read  = true;
                 obj.common.def   = false;
@@ -1377,11 +1379,14 @@ function syncObjects() {
 
     // read actual objects
     adapter.getStatesOf('', '', function (err, _states) {
+        var i;
+        var j;
+        var found;
         // synchronize actual and new
 
         // Sync existing
-        for (var i = 0; i < newObjects.length; i++) {
-            for (var j = 0; j < _states.length; j++) {
+        for (i = 0; i < newObjects.length; i++) {
+            for (j = 0; j < _states.length; j++) {
                 if (newObjects[i]._id == _states[j]._id) {
                     var mergedObj = JSON.parse(JSON.stringify(_states[j]));
 
@@ -1407,9 +1412,9 @@ function syncObjects() {
         }
 
         // Add new
-        for (var i = 0; i < newObjects.length; i++) {
-            var found = false;
-            for (var j = 0; j < _states.length; j++) {
+        for (i = 0; i < newObjects.length; i++) {
+            found = false;
+            for (j = 0; j < _states.length; j++) {
                 if (newObjects[i]._id == _states[j]._id) {
                     found = true;
                     break;
@@ -1425,9 +1430,9 @@ function syncObjects() {
         }
 
         // Delete old
-        for (var j = 0; j < _states.length; j++) {
-            var found = false;
-            for (var i = 0; i < newObjects.length; i++) {
+        for (j = 0; j < _states.length; j++) {
+            found = false;
+            for (i = 0; i < newObjects.length; i++) {
                 if (newObjects[i]._id == _states[j]._id) {
                     found = true;
                     break;

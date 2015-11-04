@@ -114,6 +114,9 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
+### 1.0.2 (2015-11-04)
+* (bluefox) fix using of more than one megad
+
 ### 1.0.1 (2015-10-03)
 * (bluefox) support of iButton
 

@@ -1,7 +1,7 @@
 {
     "common": {
         "name":                     "megad",
-        "version":                  "1.0.1",
+        "version":                  "1.0.2",
         "title":                    "Mega-D Adapter",
         "desc":                     {
             "en": "Lets control the MegaD-328 over ethernet/internet (http://www.ab-log.ru/smart-house/ethernet/megad-328)",
