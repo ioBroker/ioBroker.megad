@@ -1,7 +1,7 @@
 ![Logo](admin/megad.png)
 ioBroker MegaD-328 adapter
-
 =================
+
 Lets control the [MegaD-328](http://www.ab-log.ru/smart-house/ethernet/megad-328) over ethernet.
 ## English 
 [по русски](#Русский)
@@ -114,6 +114,9 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
+### 1.0.3 (2015-11-06)
+* (bluefox) if 1wire sensor not connected, NA value will be received 
+
 ### 1.0.2 (2015-11-04)
 * (bluefox) fix using of more than one megad
 

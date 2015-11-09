@@ -959,6 +959,7 @@ function triggerShortPress(port) {
 
 function processPortState(_port, value) {
     var _ports = adapter.config.ports;
+    var q = 0;
 
 	if (!_ports[_port]) {
 		// No configuration found
@@ -986,13 +987,18 @@ function processPortState(_port, value) {
             } else
             if (value == 'ON') {
                 value = 1;
-            }
+            } else if (value == 'NA') {
+                value = 0;
+                q = 4; // sensor not connected
+            } else
             value = parseFloat(value);
         }
         // If status changed
-        if (value !== _ports[_port].value) {
+        if (value !== _ports[_port].value || _ports[_port].q != q) {
             _ports[_port].oldValue = _ports[_port].value;
             _ports[_port].value    = value;
+            _ports[_port].q        = q;
+
             if (!_ports[_port].pty) {
                 processClick(_port);
             } else
@@ -1001,13 +1007,13 @@ function processPortState(_port, value) {
                 value = Math.round(value * 1000) / 1000;
 
                 adapter.log.debug('detected new value on port [' + _port + ']: ' + value + ', calc state ' + f);
-                adapter.setState(_ports[_port].id, f, true);
+                adapter.setState(_ports[_port].id, {val: f, ack: true, q: q});
             } else
             if (_ports[_port].pty == 3) {
-                adapter.setState(_ports[_port].id, value, true);
+                adapter.setState(_ports[_port].id, {val: value, ack: true, q: q});
 
                 if (hm !== null && (_ports[_port].d == 1 || _ports[_port].d == 2)) {
-                    adapter.setState(_ports[_port].id + '_humidity', parseFloat(hm[1]), true);
+                    adapter.setState(_ports[_port].id + '_humidity', {val: parseFloat(hm[1]), ack: true, q: q});
                 }
             } else
             if (_ports[_port].pty == 1) {
@@ -1016,10 +1022,10 @@ function processPortState(_port, value) {
                     value = Math.round(value * 1000) / 1000;
 
                     adapter.log.debug('detected new value on port [' + _port + ']: ' + value);
-                    adapter.setState(_ports[_port].id, value, true);
+                    adapter.setState(_ports[_port].id, {val: value, ack: true, q: q});
                 } else {
                     adapter.log.debug('detected new value on port [' + _port + ']: ' + (value ? true : false));
-                    adapter.setState(_ports[_port].id, value ? true : false, true);
+                    adapter.setState(_ports[_port].id, {val: value ? true : false, ack: true, q: q});
                 }
             }
         }
