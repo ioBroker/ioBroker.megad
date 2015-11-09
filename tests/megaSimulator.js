@@ -231,12 +231,15 @@ function requestProcessor(req, res) {
     }
 
     if (args.pn !== undefined) {
+        args.pn = parseInt(args.pn, 10);
         if (!ports[args.pn]) {
             res.writeHead(500, {'Content-Type': 'text/html'});
             res.end('Invalid port: ' + args.pn, 'utf8');
         } else {
             var text = 'OK';
+
             if (args.pty !== undefined) {
+                args.pty = parseInt(args.pty, 10);
                 if (args.pty == 0 || args.pty == 1 || args.pty == 2 || args.pty == 3 || args.pty == 255) {
                     console.log('Set new type          for port ' + args.pn + ': ' + ports[args.pn].pty + ' => ' + args.pty);
                     ports[args.pn].pty = args.pty;
@@ -257,6 +260,7 @@ function requestProcessor(req, res) {
                     ports[args.pn].eth = args.eth;
                 }
                 if (args.m !== undefined) {
+                    args.m = parseInt(args.m, 10);
                     if (args.m == 0 || args.m == 1 || args.m == 2) {
                         console.log('Set new mode          for port ' + args.pn + ': ' + ports[args.pn].m + ' => ' + args.m);
                         ports[args.pn].m = args.m;
@@ -267,6 +271,7 @@ function requestProcessor(req, res) {
                     }
                 }
                 if (args.d !== undefined) {
+                    args.d = parseInt(args.d, 10);
                     if (args.d == 0 || args.d == 1) {
                         console.log('Set new debounce      for port ' + args.pn + ': ' + ports[args.pn].d + ' => ' + args.d);
                         ports[args.pn].d = args.d;
@@ -277,6 +282,7 @@ function requestProcessor(req, res) {
                     }
                 }
                 if (args.misc !== undefined) {
+                    args.misc = parseInt(args.misc, 10);
                     if (args.misc == 0 || args.misc == 1) {
                         console.log('Set new misc          for port ' + args.pn + ': ' + ports[args.pn].misc + ' => ' + args.misc);
                         ports[args.pn].misc = args.misc;
@@ -307,6 +313,7 @@ function requestProcessor(req, res) {
             // Out. Порт является Выходом
             if (ports[args.pn].pty == 1) {
                 if (args.m !== undefined) {
+                    args.m = parseInt(args.m, 10);
                     if (args.m == 0) {
                         console.log('Set new mode SWITCH   for port ' + args.pn + ': ' + ports[args.pn].m + ' => ' + args.m);
                         ports[args.pn].m = args.m;
@@ -320,6 +327,7 @@ function requestProcessor(req, res) {
                     }
                 }
                 if (args.d !== undefined) {
+                    args.d = parseInt(args.d, 10);
                     if (args.d == 0 || args.d == 1) {
                         console.log('Set new default state for port ' + args.pn + ': ' + ports[args.pn].d + ' => ' + args.d);
                         ports[args.pn].d = args.d;
@@ -330,6 +338,7 @@ function requestProcessor(req, res) {
                     }
                 }
                 if (args.pwm !== undefined) {
+                    args.pwm = parseInt(args.pwm, 10);
                     if (args.pwm >= 0 || args.pwm <= 255) {
                         console.log('Set new pwm           for port ' + args.pn + ': ' + ports[args.pn].pwm + ' => ' + args.pwm);
                         ports[args.pn].pwm = args.pwm;
@@ -359,6 +368,7 @@ function requestProcessor(req, res) {
             // ADC (АЦП) ЦАП (для подключения аналоговых датчиков, данная опция доступна не для всех портов!)
             if (ports[args.pn].pty == 2) {
                 if (args.m !== undefined) {
+                    args.m = parseInt(args.m, 10);
                     if (args.m == 0) {
                         console.log('Set new mode NORM     for port ' + args.pn + ': ' + ports[args.pn].m + ' => ' + args.m);
                         ports[args.pn].m = args.m;
@@ -378,6 +388,7 @@ function requestProcessor(req, res) {
                     }
                 }
                 if (args.naf !== undefined) {
+                    args.naf = parseInt(args.naf, 10);
                     if (args.naf == 0 || args.naf == 1) {
                         console.log('Set new naf           for port ' + args.pn + ': ' + ports[args.pn].naf + ' => ' + args.naf);
                         ports[args.pn].naf = args.naf;
@@ -388,6 +399,7 @@ function requestProcessor(req, res) {
                     }
                 }
                 if (args.misc !== undefined) {
+                    args.misc = parseInt(args.misc, 10);
                     console.log('Set new threshold     for port ' + args.pn + ': ' + ports[args.pn].misc + ' => ' + args.misc);
                     ports[args.pn].misc = args.misc;
                 }
@@ -424,6 +436,7 @@ function requestProcessor(req, res) {
             // DSen. К порту подключен цифровой датчик
             else if (ports[args.pn].pty == 3) {
                 if (args.d !== undefined) {
+                    args.d = parseInt(args.d, 10);
                     if (args.d == 0) {
                         console.log('Set new DHT BASIC     for port ' + args.pn + ': ' + ports[args.pn].d + ' => ' + args.d);
                         ports[args.pn].d = args.d;
@@ -446,6 +459,7 @@ function requestProcessor(req, res) {
                     }
                 }
                 if (args.m !== undefined) {
+                    args.m = parseInt(args.m, 10);
                     if (args.m == 0) {
                         console.log('Set new mode NORM     for port ' + args.pn + ': ' + ports[args.pn].m + ' => ' + args.m);
                         ports[args.pn].m = args.m;
@@ -465,6 +479,7 @@ function requestProcessor(req, res) {
                     }
                 }
                 if (args.misc !== undefined) {
+                    args.misc = parseInt(args.misc, 10);
                     console.log('Set new threshold     for port ' + args.pn + ': ' + ports[args.pn].misc + ' => ' + args.misc);
                     ports[args.pn].misc = args.misc;
                 }

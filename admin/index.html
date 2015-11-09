@@ -113,7 +113,7 @@
         // index
         text += '<td class="tspace">' + ((index == 14 || index == 15) ? ('A' + (index - 8)) : ('P' + index)) + '</td>';
         // name
-        text += '<td class="tspace"><input class="tvalue" type="text" data-type="name" data-port="' + index + '" value="' + portSettings.name + '" style="width: 100%"/></td>';
+        text += '<td class="tspace"><input class="tvalue" type="text" data-type="name" data-port="' + index + '" value="' + (portSettings.name || '') + '" style="width: 100%"/></td>';
 
         // room
         text += '<td class="tspace"><select class="tvalue" data-type="room" data-port="' + index + '" style="width: 100%"><option value=""></option>';
@@ -124,7 +124,7 @@
         '</td>';
 
         // role
-        text += '<td class="tspace"><input class="tvalue" type="text"  data-type="role" data-port="' + index + '" value="' + portSettings.role + '" style="width: 100%"/></td>';
+        text += '<td class="tspace"><input class="tvalue" type="text"  data-type="role" data-port="' + index + '" value="' + (portSettings.role || '') + '" style="width: 100%"/></td>';
 
         // type
         text += '<td class="tspace"><select class="tvalue" ' + (((index == 14 || index == 15) && portSettings.pty == 2) ? 'disabled' : '') + ' data-type="pty" data-port="' + index + '" style="width: 100%">';

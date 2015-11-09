@@ -164,6 +164,8 @@ function writeConfigOne(ip, pass, _settings, callback, port, errors) {
     //http://192.168.0.14/sec/?pn=1&pty=0...
     if (settings.ecmd === 'ð=') settings.ecmd = '';
 
+    settings.pty = parseInt(settings.pty, 10) || 0;
+
     // Input
     if (!settings.pty) {
         settings.d    = parseInt(settings.d, 10) || 0;
@@ -1126,6 +1128,10 @@ function restApi(req, res) {
             res.end('OK', 'utf8');
 
             return;
+        } else {
+            res.writeHead(500);
+            res.end('Error: port "' + _port + '". Not configured', 'utf8');
+            return;
         }
     }
     res.writeHead(500);
@@ -1212,7 +1218,7 @@ function removeFromEnum(enumName, id, callback) {
 
 function syncObjects() {
 
-    adapter.config.longPress   = parseInt(adapter.config.longPress, 10)   || 0;
+    adapter.config.longPress   = parseInt(adapter.config.longPress,   10) || 0;
     adapter.config.doublePress = parseInt(adapter.config.doublePress, 10) || 0;
 
     var newObjects = [];
@@ -1221,11 +1227,21 @@ function syncObjects() {
         for (var p = 0; p < adapter.config.ports.length; p++) {
             var settings = adapter.config.ports[p];
             var id = 'p' + p;
+
             if (settings.name) {
                 id += '_' + settings.name.replace(/[\s.]/g, '_');
             }
-            adapter.config.ports[p].id = adapter.namespace + '.' + id;
-
+            adapter.config.ports[p].id  = adapter.namespace + '.' + id;
+            adapter.config.ports[p].pty = parseInt(adapter.config.ports[p].pty, 10) || 0;
+            if (adapter.config.ports[p].m !== undefined) {
+                adapter.config.ports[p].m = parseInt(adapter.config.ports[p].m, 10) || 0;
+            }
+            if (adapter.config.ports[p].d !== undefined) {
+                adapter.config.ports[p].d = parseInt(adapter.config.ports[p].d, 10) || 0;
+            }
+            if (adapter.config.ports[p].misc !== undefined) {
+                adapter.config.ports[p].misc = parseInt(adapter.config.ports[p].misc, 10) || 0;
+            }
             settings.port = p;
 
             var obj = {
