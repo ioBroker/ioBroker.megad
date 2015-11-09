@@ -114,6 +114,9 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
+### 1.0.4 (2015-11-10)
+* (bluefox) fix errors after optimization
+
 ### 1.0.3 (2015-11-06)
 * (bluefox) if 1wire sensor not connected, NA value will be received 
 
