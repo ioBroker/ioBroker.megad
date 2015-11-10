@@ -177,8 +177,8 @@ function trigger(port) {
 
     var options = {
         host: parts[0],
-        port: parts[1] || 80,
-        path: config.sct + '?pt=' + port
+        port: parseInt(parts[1], 10) || 80,
+        path: '/' + config.sct + '?pt=' + port
     };
 
     console.log(JSON.stringify(options));
@@ -190,7 +190,7 @@ function trigger(port) {
             res.on('data', function (chunk) {
                 data += chunk;
             });
-            res.on('end', function (chunk) {
+            res.on('end', function () {
                 console.log('Response: ' + res.statusCode + ' - ' + data);
             });
         }).on('error', function(e) {
@@ -783,6 +783,7 @@ function main() {
         }
     }
 
+    config.port = parseInt(config.port, 10);
     server = require('http').createServer(requestProcessor);
     server.listen(config.port);
     console.log('Server started on port: ' + config.port);

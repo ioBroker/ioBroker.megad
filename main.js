@@ -934,6 +934,7 @@ function triggerShortPress(port) {
     var config = adapter.config.ports[port];
 
     if (config.double && adapter.config.doublePress) {
+        // if not first read
         if (config.oldValue === undefined || config.oldValue === null) return;
 
         if (!config.value) {
@@ -944,13 +945,15 @@ function triggerShortPress(port) {
         detectDoubleClick(port);
     } else {
         if (config.m != 1) {
+            // if not first read
             if (config.oldValue === undefined || config.oldValue === null) return;
-            adapter.log.debug('reported new state for port ' + port + ' - ' + config.value);
+            adapter.log.debug('reported new state for port ' + port + ' - true');
 
             adapter.setState(config.id, true, true);
 
             // Set automatically the state of the port to false after 100ms
             setTimeout(function () {
+                adapter.log.debug('set state for port ' + port + ' back to false');
                 adapter.setState(config.id, false, true);
             }, 100);
         } else {
@@ -995,6 +998,7 @@ function processPortState(_port, value) {
             } else
             value = parseFloat(value);
         }
+
         // If status changed
         if (value !== _ports[_port].value || _ports[_port].q != q) {
             _ports[_port].oldValue = _ports[_port].value;
@@ -1113,6 +1117,7 @@ function restApi(req, res) {
         if (adapter.config.ports[_port]) {
             // If digital port
             if (!adapter.config.ports[_port].pty && adapter.config.ports[_port].m != 1) {
+                adapter.config.ports[_port].oldValue = adapter.config.ports[_port].value;
                 adapter.config.ports[_port].value = !adapter.config.ports[_port].m;
                 processClick(_port);
             } else if (adapter.config.ports[_port].pty == 3 && adapter.config.ports[_port].d == 4) {
@@ -1483,6 +1488,7 @@ function syncObjects() {
 //}
 function main() {
     if (adapter.config.ip) {
+        adapter.config.port = parseInt(adapter.config.port, 10) || 0;
         if (adapter.config.port) {
             server = require('http').createServer(restApi);
 
