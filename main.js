@@ -129,7 +129,7 @@ function processMessage(message) {
     if (adapter.config.ports[port]) {
         // If digital port
         if (!adapter.config.ports[port].pty && adapter.config.ports[port].m != 1) {
-            adapter.config.ports[port].value = !adapter.config.ports[port].m;
+            adapter.config.ports[port].value = !adapter.config.ports[port].m ? 1 : 0;
             processClick(port);
         } else if (adapter.config.ports[port].pty == 3 && adapter.config.ports[port].d == 4) {
             // process iButton
@@ -954,6 +954,7 @@ function triggerShortPress(port) {
             // Set automatically the state of the port to false after 100ms
             setTimeout(function () {
                 adapter.log.debug('set state for port ' + port + ' back to false');
+                config.value = 0;
                 adapter.setState(config.id, false, true);
             }, 100);
         } else {
@@ -994,9 +995,9 @@ function processPortState(_port, value) {
                 value = 1;
             } else if (value == 'NA') {
                 value = 0;
-                q = 4; // sensor not connected
+                q = 0x82; // sensor not connected
             } else
-            value = parseFloat(value);
+            value = parseFloat(value) || 0;
         }
 
         // If status changed
@@ -1033,6 +1034,10 @@ function processPortState(_port, value) {
                     adapter.log.debug('detected new value on port [' + _port + ']: ' + (value ? true : false));
                     adapter.setState(_ports[_port].id, {val: value ? true : false, ack: true, q: q});
                 }
+            } else // internal temperature sensor
+            if (_ports[_port].pty == 4) {
+                adapter.log.debug('detected new value on port [' + _port + ']: ' + value);
+                adapter.setState(_ports[_port].id, {val: value, ack: true, q: q});
             }
         }
     }
@@ -1118,7 +1123,7 @@ function restApi(req, res) {
             // If digital port
             if (!adapter.config.ports[_port].pty && adapter.config.ports[_port].m != 1) {
                 adapter.config.ports[_port].oldValue = adapter.config.ports[_port].value;
-                adapter.config.ports[_port].value = !adapter.config.ports[_port].m;
+                adapter.config.ports[_port].value = !adapter.config.ports[_port].m ? 1 : 0;
                 processClick(_port);
             } else if (adapter.config.ports[_port].pty == 3 && adapter.config.ports[_port].d == 4) {
                 // process iButton
@@ -1231,7 +1236,7 @@ function syncObjects() {
     if (adapter.config.ports) {
         for (var p = 0; p < adapter.config.ports.length; p++) {
             var settings = adapter.config.ports[p];
-            var id = 'p' + p;
+            var id = (p == 14 || p == 15) ? ('a' + (p - 8)) : ('p' + p);
 
             if (settings.name) {
                 id += '_' + settings.name.replace(/[\s.]/g, '_');
@@ -1386,6 +1391,18 @@ function syncObjects() {
                     obj.common.type = 'string';
                     obj.common.def  = '';
                 }
+            } else
+            // internal digital temperature sensor
+            if (settings.pty == 4) {
+                obj.common.write = false;
+                obj.common.read  = true;
+                obj.common.def   = 0;
+                obj.common.min   = -30;
+                obj.common.max   = 30;
+                obj.common.unit  = '°C';
+                obj.common.desc  = 'P' + p + ' - temperature';
+                obj.common.type  = 'number';
+                if (!obj.common.role) obj.common.role = 'value.temperature';
             } else {
                 continue;
             }

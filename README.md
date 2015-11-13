@@ -114,6 +114,9 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
+### 1.0.6 (2015-11-13)
+* (bluefox) fix short press
+
 ### 1.0.5 (2015-11-11)
 * (bluefox) fix small errors
 
