@@ -114,6 +114,10 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
+### 1.1.0 (2015-12-17)
+* (bluefox) add counter for digital inputs
+* (bluefox) fix the internal temperature sensor monitor
+
 ### 1.0.6 (2015-11-13)
 * (bluefox) fix short press
 

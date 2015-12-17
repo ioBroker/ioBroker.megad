@@ -599,6 +599,10 @@ function requestProcessor(req, res) {
                 res.end(getState(args.pt).toString(), 'utf8');
             }
         } else
+        if (args.cmd == 'tget') {
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.end((Math.round((Math.random() * 300) / 10)).toString(), 'utf8');
+        } else
         if (args.cmd == 'all') {
             var response = [];
             for (var i = 0; i < ports.length; i++) {
