@@ -1028,7 +1028,7 @@ function processPortState(_port, value) {
         // Value can be OFF/5 or 27/0 or 27 or ON
         if (typeof value == 'string') {
             var t = value.split('/');
-            var m = value.match(/temp:([0-9.]+)/);
+            var m = value.match(/temp:([0-9.-]+)/);
             if (m) {
                 secondary = value.match(/hum:([0-9.]+)/);
                 if (secondary) secondary = parseFloat(secondary[1]);
@@ -1057,9 +1057,6 @@ function processPortState(_port, value) {
         // If status changed
         if (value !== _ports[_port].value || _ports[_port].q != q || (secondary !== null && _ports[_port].secondary != secondary)) {
             _ports[_port].oldValue = _ports[_port].value;
-            _ports[_port].value    = value;
-            _ports[_port].q        = q;
-            if (secondary !== null) _ports[_port].secondary = secondary;
 
             if (!_ports[_port].pty) {
                 if (value !== _ports[_port].value || _ports[_port].q != q) {
@@ -1079,7 +1076,7 @@ function processPortState(_port, value) {
             if (_ports[_port].pty == 3) {
                 adapter.setState(_ports[_port].id, {val: value, ack: true, q: q});
 
-                if (secondary !== null && (_ports[_port].d == 1 || _ports[_port].d == 2) && (_ports[_port].secondary != secondary || _ports[_port].q != q)) {
+                if (secondary !== null && (_ports[_port].secondary != secondary || _ports[_port].q != q)) {
                     adapter.setState(_ports[_port].id + '_humidity', {val: secondary, ack: true, q: q});
                 }
             } else
@@ -1099,6 +1096,10 @@ function processPortState(_port, value) {
                 adapter.log.debug('detected new value on port [' + _port + ']: ' + value);
                 adapter.setState(_ports[_port].id, {val: value, ack: true, q: q});
             }
+
+            _ports[_port].value    = value;
+            _ports[_port].q        = q;
+            if (secondary !== null) _ports[_port].secondary = secondary;
         }
     }
 }

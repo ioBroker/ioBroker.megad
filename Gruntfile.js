@@ -215,6 +215,7 @@ module.exports = function (grunt) {
         'jscs'
     ]);
     grunt.registerTask('p', [
+        'replace',
         'updateReadme'
     ]);
 };
