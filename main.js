@@ -1060,6 +1060,7 @@ function processPortState(_port, value) {
 
             if (!_ports[_port].pty) {
                 if (value !== _ports[_port].value || _ports[_port].q != q) {
+                    _ports[_port].value = value;
                     processClick(_port);
                 }
                 if (secondary !== null && (_ports[_port].secondary != secondary || _ports[_port].q != q)) {
@@ -1074,7 +1075,9 @@ function processPortState(_port, value) {
                 adapter.setState(_ports[_port].id, {val: f, ack: true, q: q});
             } else
             if (_ports[_port].pty == 3) {
-                adapter.setState(_ports[_port].id, {val: value, ack: true, q: q});
+                if (_ports[_port].value != value || _ports[_port].q != q) {
+                    adapter.setState(_ports[_port].id, {val: value, ack: true, q: q});
+                }
 
                 if (secondary !== null && (_ports[_port].secondary != secondary || _ports[_port].q != q)) {
                     adapter.setState(_ports[_port].id + '_humidity', {val: secondary, ack: true, q: q});
