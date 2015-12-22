@@ -60,6 +60,8 @@ adapter.on('stateChange', function (id, state) {
 
             if (ports[id].common.type == 'boolean') {
                 sendCommand(ports[id].native.port, state.val);
+            } else if (id.indexOf('_counter') !== -1) {
+                sendCommandToCounter(ports[id].native.port, state.val);
             } else {
                 ports[id].native.offset = parseFloat(ports[id].native.offset || 0) || 0;
                 ports[id].native.factor = parseFloat(ports[id].native.factor || 1) || 1;
@@ -1267,6 +1269,37 @@ function sendCommand(port, value) {
     });
 }
 
+function sendCommandToCounter(port, value) {
+    //'http://192.168.0.52/sec/?pt=2&cnt=0'
+    var data = 'pt=' + port + '&cnt=' + (value || 0);
+
+    var parts = adapter.config.ip.split(':');
+
+    var options = {
+        host: parts[0],
+        port: parts[1] || 80,
+        path: '/' + adapter.config.password + '/?' + data
+    };
+    adapter.log.debug('Send command "' + data + '" to ' + adapter.config.ip);
+
+    // Set up the request
+    http.get(options, function (res) {
+        var xmldata = '';
+        res.setEncoding('utf8');
+        res.on('error', function (e) {
+            adapter.log.warn(e.toString());
+        });
+        res.on('data', function (chunk) {
+            xmldata += chunk;
+        });
+        res.on('end', function () {
+            adapter.log.debug('Response "' + xmldata + '"');
+        });
+    }).on('error', function (e) {
+        adapter.log.warn('Got error by post request ' + e.toString());
+    });
+}
+
 function addToEnum(enumName, id, callback) {
     adapter.getForeignObject(enumName, function (err, obj) {
         if (!err && obj) {
@@ -1395,7 +1428,7 @@ function syncObjects() {
                     common: {
                         name:  obj.common.name + '_counter',
                         role:  'state',
-                        write: false,
+                        write: true,
                         read:  true,
                         def:   0,
                         desc:  'P' + p + ' - inputs counter',
