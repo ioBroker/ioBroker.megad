@@ -1121,14 +1121,14 @@ function pollStatus(dev) {
             var p;
             for (p = 0; p < _ports.length; p++) {
                 // process extra internal temperature later
-                if (adapter.config.ports[p].pty == 4) continue;
+                if (!adapter.config.ports[p] || adapter.config.ports[p].pty == 4) continue;
                 processPortState(p, _ports[p]);
             }
             // process extra internal temperature
             if (askInternalTemp) {
                 getInternalTemp(function (err, data) {
                     for (var po = 0; po < adapter.config.ports.length; po++) {
-                        if (adapter.config.ports[po].pty == 4) {
+                        if (adapter.config.ports[p] && adapter.config.ports[po].pty == 4) {
                             processPortState(po, data);
                         }
                     }
