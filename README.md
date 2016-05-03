@@ -120,7 +120,7 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
-### 1.1.2 (2016-05-03)
+### 1.2.0 (2016-05-03)
 * (bluefox) add info.connection state
 * (bluefox) fix error if more ports in megad than configured
 
