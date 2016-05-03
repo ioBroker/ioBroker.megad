@@ -2,6 +2,12 @@
 ioBroker MegaD-328 adapter
 =================
 
+[![NPM version](http://img.shields.io/npm/v/iobroker.megad.svg)](https://www.npmjs.com/package/iobroker.megad)
+[![Downloads](https://img.shields.io/npm/dm/iobroker.megad.svg)](https://www.npmjs.com/package/iobroker.megad)
+[![Tests](https://travis-ci.org/ioBroker/ioBroker.megad.svg?branch=master)](https://travis-ci.org/ioBroker/ioBroker.megad)
+
+[![NPM](https://nodei.co/npm/iobroker.megad.png?downloads=true)](https://nodei.co/npm/iobroker.megad/)
+
 Lets control the [MegaD-328](http://www.ab-log.ru/smart-house/ethernet/megad-328) over ethernet.
 ## English 
 [по русски](#Русский)
@@ -114,6 +120,10 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
+### 1.1.2 (2016-05-03)
+* (bluefox) add info.connection state
+* (bluefox) fix error if more ports in megad than configured
+
 ### 1.1.0 (2015-12-22)
 * (bluefox) make counters writeable
 

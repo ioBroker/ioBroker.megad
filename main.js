@@ -26,6 +26,7 @@ var http   = require('http');
 var server =  null;
 var ports  = {};
 var askInternalTemp = false;
+var connected = false;
 
 var adapter = utils.adapter('megad');
 
@@ -1114,7 +1115,20 @@ function pollStatus(dev) {
         getPortState(port, processPortState);
     }*/
     getPortsState(function (err, data) {
-        if (err) adapter.log.warn(err);
+        if (err) {
+            adapter.log.warn(err);
+            if (connected) {
+                connected = false;
+                adapter.log.warn('Device "' + adapter.config.ip + '" is disconnected');
+                adapter.setState('info.connection', false, true);
+            }
+        } else {
+            if (!connected) {
+                adapter.log.info('Device "' + adapter.config.ip + '" is connected');
+                connected = true;
+                adapter.setState('info.connection', true, true);
+            }
+        }
 
         if (data) {
             var _ports = data.split(';');
@@ -1128,7 +1142,7 @@ function pollStatus(dev) {
             if (askInternalTemp) {
                 getInternalTemp(function (err, data) {
                     for (var po = 0; po < adapter.config.ports.length; po++) {
-                        if (adapter.config.ports[p] && adapter.config.ports[po].pty == 4) {
+                        if (adapter.config.ports[po] && adapter.config.ports[po].pty == 4) {
                             processPortState(po, data);
                         }
                     }
@@ -1482,6 +1496,7 @@ function syncObjects() {
                 obj.common.write = false;
                 obj.common.read  = true;
                 obj.common.def   = 0;
+                obj.common.type  = 'number';
                 if (settings.d == 1 || settings.d == 2) {
                     obj.common.min = -30;
                     obj.common.max = 30;
@@ -1641,6 +1656,8 @@ function syncObjects() {
 //    "cache":  false
 //}
 function main() {
+    adapter.setState('info.connection', false, true);
+
     if (adapter.config.ip) {
         adapter.config.port = parseInt(adapter.config.port, 10) || 0;
         if (adapter.config.port) {
