@@ -1497,7 +1497,7 @@ function syncObjects() {
                 obj.common.read  = true;
                 obj.common.def   = 0;
                 obj.common.type  = 'number';
-                if (settings.d == 1 || settings.d == 2) {
+                if (settings.d == 1 || settings.d == 2 || settings.d == 3) {
                     obj.common.min = -30;
                     obj.common.max = 30;
                     obj.common.unit = '°C';

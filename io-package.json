@@ -1,7 +1,14 @@
 {
     "common": {
         "name":                     "megad",
-        "version":                  "1.2.0",
+        "version":                  "1.2.1",
+        "news": {
+            "1.2.1": {
+                "en":               "extend digital temperature sensor with new type",
+                "de":               "extend digital temperature sensor with new type",
+                "ru":               "extend digital temperature sensor with new type"
+            }
+        },
         "title":                    "Mega-D Adapter",
         "desc":                     {
             "en": "Lets control the MegaD-328 over ethernet/internet (http://www.ab-log.ru/smart-house/ethernet/megad-328)",

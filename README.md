@@ -120,6 +120,9 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
+### 1.2.1 (2016-08-14)
+* (bluefox) extend digital temperature sensor with new type
+
 ### 1.2.0 (2016-05-03)
 * (bluefox) add info.connection state
 * (bluefox) fix error if more ports in megad than configured
