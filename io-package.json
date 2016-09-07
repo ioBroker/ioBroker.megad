@@ -24,7 +24,7 @@
         "loglevel":                 "info",
         "icon":                     "megad.png",
         "messagebox":               true,
-        "readme":                   "https://raw.githubusercontent.com/ioBroker/ioBroker.megad/master/README.md",
+        "readme":                   "https://github.com/ioBroker/ioBroker.megad/blob/master/README.md",
         "keywords":                 ["Mega-D", "communication"],
 		"enabled":                  true,
         "extIcon":                  "https://raw.githubusercontent.com/ioBroker/ioBroker.megad/master/admin/megad.png",
