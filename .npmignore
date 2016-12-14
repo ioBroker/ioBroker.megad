@@ -5,3 +5,4 @@ node_modules
 .travis.yml
 .idea
 .git
+appveyor.yml
