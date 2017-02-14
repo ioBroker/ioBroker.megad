@@ -195,9 +195,9 @@
 
         //d(default state)
         if (portSettings.pty == 1) {
-            if (portSettings.m) {
-                portSettings.d = 0;
-            } else {
+            if (portSettings.m == 1) {
+                text += _('Default state:') + ' <input class="tvalue" data-type="d" type="text" data-port="' + index + '" value="' + (portSettings.d || 0) + '" size=4 maxsize="3"/>';
+            } else if (portSettings.m == 0) {
                 text += _('Default state:') + ' <select class="tvalue" data-type="d" data-port="' + index + '">';
                 text += '<option value="0" ' + ((portSettings.d == 0) ? 'selected' : '') + '>' + _('off') + '</option>';
                 text += '<option value="1" ' + ((portSettings.d == 1) ? 'selected' : '') + '>' + _('on') + '</option>';
@@ -210,15 +210,15 @@
         //Sensor type
         if (portSettings.pty == 3) {
             modes = [
-                'none',
-                'DHT11',
+                ///'none',
+                ///'DHT11',
                 'DHT22',
                 '1W',
                 'iB'
             ];
             text += _('Sensor type:') + ' <select class="tvalue" data-type="d" data-port="' + index + '">';
-            text += '<option value="0" ' + ((portSettings.d == 0) ? 'selected' : '') + '>' + _('none') + '</option>';
-            text += '<option value="1" ' + ((portSettings.d == 1) ? 'selected' : '') + '>DHT11</option>';
+            ///text += '<option value="0" ' + ((portSettings.d == 0) ? 'selected' : '') + '>' + _('none') + '</option>';
+            ///text += '<option value="1" ' + ((portSettings.d == 1) ? 'selected' : '') + '>DHT11</option>';
             text += '<option value="2" ' + ((portSettings.d == 2) ? 'selected' : '') + '>DHT22</option>';
             text += '<option value="3" ' + ((portSettings.d == 3) ? 'selected' : '') + '>1 wire</option>';
             text += '<option value="4" ' + ((portSettings.d == 4) ? 'selected' : '') + '>iButton</option>';
@@ -226,7 +226,7 @@
         }
         //pwm
         if (portSettings.pty == 1 && portSettings.m == 1 && (index == 10 || index == 12 || index == 13)) {
-            text += _('PWM:') + ' <input class="tvalue" data-type="pwm" type="text" data-port="' + index + '" value="' + (portSettings.pwm || 0) + '" size=4 maxsize="3"/>';
+            ///text += _('PWM:') + ' <input class="tvalue" data-type="pwm" type="text" data-port="' + index + '" value="' + (portSettings.pwm || 0) + '" size=4 maxsize="3"/>';
         }
 
         //misc
@@ -669,6 +669,7 @@
                     aPorts[p] = settingsPorts[p] || {};
 
                     if (aPorts[p].pn !== undefined) delete aPorts[p].pn;
+                    if (aPorts[p].pwm !== undefined) delete aPorts[p].pwm;
 
                     ports[p] = ports[p] || {};
                     if (aPorts[p].pty == 0) {
@@ -693,7 +694,7 @@
                         aPorts[p].name    = ports[p].name || ('P' + p);
                         aPorts[p].m       = aPorts[p].m   || 0;
                         aPorts[p].d       = aPorts[p].d   || 0;
-                        aPorts[p].pwm     = aPorts[p].pwm || 0;
+                        ///aPorts[p].pwm     = aPorts[p].pwm || 0;
 
                         aPorts[p].role    = ports[p].role || 'button';
                     } else
@@ -713,7 +714,7 @@
                         // temperature - digital sensor
                         aPorts[p].name    = ports[p].name || ('P' + p);
                         aPorts[p].m       = aPorts[p].m || (_ports[p].indexOf('hum') != -1 ? 1 : 0);
-                        aPorts[p].d       = aPorts[p].d || 0;
+                        aPorts[p].d       = aPorts[p].d || 2;
                         aPorts[p].role    = ports[p].role || 'value.temperature';
                     } else if (_ports[p].indexOf('temp:') != -1) {
                         // temperature - internal sensor
