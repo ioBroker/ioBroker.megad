@@ -271,7 +271,8 @@
             ports[index][attr] = $(this).val();
         }
 
-        if (attr == 'm' || attr == 'pty' || attr == 'd') {
+        ///if (attr == 'm' || attr == 'pty' || attr == 'd') {
+        if (attr == 'm' || attr == 'pty' || (ports[index].pty == 3 && attr == 'd') || (ports[index].pty == 1 && attr == 'misc')) {
             // if input
             if (ports[index].pty == 0) {
                 // m: 0 - on close, 1 - on change, 2 - on open
@@ -303,6 +304,12 @@
                 if (ports[index].misc   === undefined) ports[index].misc = 0;
                 if (ports[index].m2     === undefined) ports[index].m2 = 1;
                 if (ports[index].m      === undefined) ports[index].m = 0;
+                if (ports[index].m != 1) {
+                    if (ports[index].misc   !== undefined) delete ports[index].misc;
+                }
+                if (ports[index].misc == 1) {
+                    ports[index].m2 = 1;
+                }
                 if (ports[index].m > 1) ports[index].m = 0;
             } else
             if (ports[index].pty == 2) {
@@ -329,13 +336,15 @@
                 if (ports[index].ecmd   === undefined) ports[index].ecmd = '';
                 if (ports[index].naf    === undefined) ports[index].naf = 0;
                 if (ports[index].hst    === undefined) ports[index].hst = 0;
-                if (ports[index].d      === undefined) ports[index].d = 1;
+                if (ports[index].m      === undefined) ports[index].m = 0;
+                if (ports[index].d      === undefined) ports[index].d = 2;
                 if (ports[index].d != 3) {
-                    ports[index].misc = 0;
-                    ports[index].m    = 0;
-                } else {
-                    if (ports[index].misc   === undefined) ports[index].misc = 0;
-                    if (ports[index].m      === undefined) ports[index].m = 0;
+                    if (ports[index].misc   !== undefined) delete ports[index].misc;
+                    if (ports[index].hst    !== undefined) delete ports[index].hst;
+                    if (ports[index].m      !== undefined) delete ports[index].m;
+                    if (ports[index].naf    !== undefined) delete ports[index].naf;
+                    if (ports[index].eth    !== undefined) delete ports[index].eth;
+                    if (ports[index].ecmd   !== undefined) delete ports[index].ecmd;
                 }
                 if (ports[index].m > 3) ports[index].m = 0;
             } else {
