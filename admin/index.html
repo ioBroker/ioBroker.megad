@@ -233,7 +233,7 @@
         if (portSettings.pty == 1 && portSettings.m == 1 && (index == 10 || index == 12 || index == 13)) {
             text += _('PWM:') + ' <input class="tvalue" data-type="pwm" type="text" data-port="' + index + '" value="' + (portSettings.pwm || 0) + '" size=4 maxsize="3"/>';
             text += _('Smooth:') + ' <input type="checkbox" class="tvalue" data-type="misc" data-port="' + index + '" ' + (portSettings.misc   ? 'checked' : '') + '/>';
-            if (portSettings.misc == 1) {
+            if (portSettings.misc == 1 || portSettings.misc == true) {
                 text += ' <input class="tvalue" data-type="m2" type="text"  style="width: 70px" data-port="' + index + '" value="' + (portSettings.m2 || 1) + '" maxsize="3"/> ';
             }
         }
