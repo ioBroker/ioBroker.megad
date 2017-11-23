@@ -1,8 +1,13 @@
 {
     "common": {
         "name":                     "megad",
-        "version":                  "1.2.1",
+        "version":                  "1.3.0",
         "news": {
+            "1.2.2": {
+                "en":               "Removed support DHT11 sensors\nAdded hysteresis function (ADC ports and DS18B20 sensors)\nDeleted team tget (request for internal temperature sensor value) is not yet done\nAdded the ability to Smooth to control smooth speed PWM control.",
+                "de":               "Removed support DHT11 sensors\nAdded hysteresis function (ADC ports and DS18B20 sensors)\nDeleted team tget (request for internal temperature sensor value) is not yet done\nAdded the ability to Smooth to control smooth speed PWM control.",
+                "ru":               "Removed support DHT11 sensors\nAdded hysteresis function (ADC ports and DS18B20 sensors)\nDeleted team tget (request for internal temperature sensor value) is not yet done\nAdded the ability to Smooth to control smooth speed PWM control."
+            },
             "1.2.1": {
                 "en":               "extend digital temperature sensor with new type",
                 "de":               "extend digital temperature sensor with new type",
@@ -16,7 +21,7 @@
             "ru": "Позволяет управлять MegaD-328 через ethernet/интернет (http://www.ab-log.ru/smart-house/ethernet/megad-328)"
         },
         "authors": [
-            "bluefox <bluefox@ccu.io>"
+            "bluefox <dogafox@gmail.com>"
         ],
         "license":                  "MIT",
         "platform":                 "Javascript/Node.js",

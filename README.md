@@ -120,6 +120,12 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
+### 1.3.0 (2017-11-23)
+* (ausHaus) Removed support DHT11 sensors
+* (ausHaus) Added hysteresis function (ADC ports and DS18B20 sensors)
+* (ausHaus) Deleted team tget (request for internal temperature sensor value) is not yet done
+* (ausHaus) Added the ability to Smooth to control smooth speed PWM control.
+
 ### 1.2.1 (2016-08-14)
 * (bluefox) extend digital temperature sensor with new type
 
