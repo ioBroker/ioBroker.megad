@@ -1693,7 +1693,7 @@ function main() {
             server = require('http').createServer(restApi);
 
             adapter.getPort(adapter.config.port, function (port) {
-                if (pasreInt(port, 10) !== adapter.config.port && !adapter.config.findNextPort) {
+                if (parseInt(port, 10) !== adapter.config.port && !adapter.config.findNextPort) {
                     adapter.log.warn('port ' + adapter.config.port + ' already in use');
                 } else {
                     server.listen(port);
