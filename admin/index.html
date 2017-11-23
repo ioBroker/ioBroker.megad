@@ -74,6 +74,8 @@
         "off":                  {"en": "off",                   "de": "off",                        "ru": "выкл"},
         "on":                   {"en": "on",                    "de": "on",                         "ru": "вкл"},
         "Threshold:":           {"en": "Threshold:",            "de": "Schwellwert:",               "ru": "Порог:"},
+        "Hysteresis:":          {"en": "Hysteresis:",           "de": "Hysterese:",                 "ru": "Гистерезис:"},
+        "Smooth:":              {"en": "Smooth:",               "de": "Glatt:",                     "ru": "Плавный:"},
         "Change ip or password": {
             "en": "Change ip or password",
             "de": "IP Adresse oder Kennwort ändern",
@@ -131,7 +133,9 @@
         text += '<option value="255" ' + ((portSettings.pty == 255) ? 'selected' : '') + '>' + _('NC')              + '</option>';
         text += '<option value="0" '   + ((portSettings.pty == 0)   ? 'selected' : '') + '>' + _('Input')           + '</option>';
         text += '<option value="1" '   + ((portSettings.pty == 1)   ? 'selected' : '') + '>' + _('Output')          + '</option>';
-        text += '<option value="2" '   + ((portSettings.pty == 2)   ? 'selected' : '') + '>' + _('ADC')             + '</option>';
+        if (index == 0 || index == 1 || index == 2 || index == 3 || index == 4 || index == 5 || index == 14 || index == 15) {
+            text += '<option value="2" '   + ((portSettings.pty == 2)   ? 'selected' : '') + '>' + _('ADC')         + '</option>';
+        }
         text += '<option value="3" '   + ((portSettings.pty == 3)   ? 'selected' : '') + '>' + _('Digital Sensor')  + '</option>';
         text += '<option value="4" '   + ((portSettings.pty == 4)   ? 'selected' : '') + '>' + _('Internal Sensor') + '</option>';
         '</td>';
@@ -186,11 +190,12 @@
         text += '<td class="tspace">';
 
         // ecmd(Action) and eth(net action)
-        if (portSettings.pty == 0 || portSettings.pty == 2 || (portSettings.pty == 3 && portSettings.d != 1 && portSettings.d != 2)) {
+        if (portSettings.pty == 0 || portSettings.pty == 2 || (portSettings.pty == 3 && portSettings.d == 3)) {
             // ecmd(Action)
             text += _('Action:') + ' <input class="tvalue" data-type="ecmd" type="text" data-port="' + index + '" value="' + (portSettings.ecmd || '') + '"  style="width: 70px" maxsize="11"/>';
             // eth(net action)
-            //text += _('Net:') + ' <input class="tvalue" data-type="eth" type="text" data-port="' + index + '" value="' + portSettings.eth  + '" style="width: 70px" maxsize="35"/>';
+            text += _('Net:') + ' <input class="tvalue" data-type="eth" type="text" data-port="' + index + '" value="' + portSettings.eth  + '" style="width: 70px" maxsize="35"/>';
+            text += ' <input type="checkbox" class="tvalue" data-type="naf" data-port="' + index + '" ' + (portSettings.naf   ? 'checked' : '') + '/>';
         }
 
         //d(default state)
@@ -227,11 +232,16 @@
         //pwm
         if (portSettings.pty == 1 && portSettings.m == 1 && (index == 10 || index == 12 || index == 13)) {
             text += _('PWM:') + ' <input class="tvalue" data-type="pwm" type="text" data-port="' + index + '" value="' + (portSettings.pwm || 0) + '" size=4 maxsize="3"/>';
+            text += _('Smooth:') + ' <input type="checkbox" class="tvalue" data-type="misc" data-port="' + index + '" ' + (portSettings.misc   ? 'checked' : '') + '/>';
+            if (portSettings.misc == 1 || portSettings.misc == true) {
+                text += ' <input class="tvalue" data-type="m2" type="text"  style="width: 70px" data-port="' + index + '" value="' + (portSettings.m2 || 1) + '" maxsize="3"/> ';
+            }
         }
 
         //misc
         if ((portSettings.pty == 2 && portSettings.m != 0) || (portSettings.pty == 3 && portSettings.d == 3)) {
             text += _('Threshold:') + ' <input class="tvalue" data-type="misc" type="text"  style="width: 70px" data-port="' + index + '" value="' + (portSettings.misc || 0) + '" maxsize="3"/>';
+            text += _('Hysteresis:') + ' <input class="tvalue" data-type="hst" type="text"  style="width: 70px" data-port="' + index + '" value="' + (portSettings.hst || 0) + '" maxsize="3"/>';
         }
 
         if (portSettings.pty == 2 || (portSettings.pty == 1 && portSettings.m)) {
@@ -261,7 +271,8 @@
             ports[index][attr] = $(this).val();
         }
 
-        if (attr == 'm' || attr == 'pty' || attr == 'd') {
+        ///if (attr == 'm' || attr == 'pty' || attr == 'd') {
+        if (attr == 'm' || attr == 'pty' || (ports[index].pty == 3 && attr == 'd') || (ports[index].pty == 1 && attr == 'misc')) {
             // if input
             if (ports[index].pty == 0) {
                 // m: 0 - on close, 1 - on change, 2 - on open
@@ -272,6 +283,7 @@
 
                 if (ports[index].eth    === undefined) ports[index].eth = '';
                 if (ports[index].ecmd   === undefined) ports[index].ecmd = '';
+                if (ports[index].naf    === undefined) ports[index].naf = 0;
                 if (ports[index].d      === undefined) ports[index].d = 0;
                 if (ports[index].misc   === undefined) ports[index].misc = 1;
                 if (ports[index].m      === undefined) ports[index].m = 0;
@@ -287,9 +299,17 @@
 
                 if (ports[index].eth    !== undefined) delete ports[index].eth;
                 if (ports[index].ecmd   !== undefined) delete ports[index].ecmd;
+                if (ports[index].naf    !== undefined) delete ports[index].naf; 
                 if (ports[index].d      === undefined) ports[index].d = 0;
-                if (ports[index].misc   !== undefined) delete ports[index].misc;
+                if (ports[index].misc   === undefined) ports[index].misc = 0;
+                if (ports[index].m2     === undefined) ports[index].m2 = 1;
                 if (ports[index].m      === undefined) ports[index].m = 0;
+                if (ports[index].m != 1) {
+                    if (ports[index].misc   !== undefined) delete ports[index].misc;
+                }
+                if (ports[index].misc == 1) {
+                    ports[index].m2 = 1;
+                }
                 if (ports[index].m > 1) ports[index].m = 0;
             } else
             if (ports[index].pty == 2) {
@@ -301,6 +321,8 @@
                 if (ports[index].eth    === undefined) ports[index].eth  = '';
                 if (ports[index].ecmd   === undefined) ports[index].ecmd = '';
                 if (ports[index].d      !== undefined) delete ports[index].d;
+                if (ports[index].naf    === undefined) ports[index].naf = 0;
+                if (ports[index].hst    === undefined) ports[index].hst = 0;
                 if (ports[index].misc   === undefined) ports[index].misc = 0;
                 if (ports[index].m      === undefined) ports[index].m = 0;
             } else
@@ -312,13 +334,17 @@
 
                 if (ports[index].eth    === undefined) ports[index].eth  = '';
                 if (ports[index].ecmd   === undefined) ports[index].ecmd = '';
-                if (ports[index].d      === undefined) ports[index].d = 1;
+                if (ports[index].naf    === undefined) ports[index].naf = 0;
+                if (ports[index].hst    === undefined) ports[index].hst = 0;
+                if (ports[index].m      === undefined) ports[index].m = 0;
+                if (ports[index].d      === undefined) ports[index].d = 2;
                 if (ports[index].d != 3) {
-                    ports[index].misc = 0;
-                    ports[index].m    = 0;
-                } else {
-                    if (ports[index].misc   === undefined) ports[index].misc = 0;
-                    if (ports[index].m      === undefined) ports[index].m = 0;
+                    if (ports[index].misc   !== undefined) delete ports[index].misc;
+                    if (ports[index].hst    !== undefined) delete ports[index].hst;
+                    if (ports[index].m      !== undefined) delete ports[index].m;
+                    if (ports[index].naf    !== undefined) delete ports[index].naf;
+                    if (ports[index].eth    !== undefined) delete ports[index].eth;
+                    if (ports[index].ecmd   !== undefined) delete ports[index].ecmd;
                 }
                 if (ports[index].m > 3) ports[index].m = 0;
             } else {
@@ -329,6 +355,9 @@
 
                 if (ports[index].eth    !== undefined) delete ports[index].eth;
                 if (ports[index].ecmd   !== undefined) delete ports[index].ecmd;
+                if (ports[index].hst    !== undefined) delete ports[index].hst;
+                if (ports[index].naf    !== undefined) delete ports[index].naf;
+                if (ports[index].m2     !== undefined) delete ports[index].m2;
                 if (ports[index].d      !== undefined) delete ports[index].d;
                 if (ports[index].misc   !== undefined) delete ports[index].misc;
                 if (ports[index].m      !== undefined) delete ports[index].m;
