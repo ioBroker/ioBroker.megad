@@ -729,8 +729,12 @@
                         aPorts[p].name    = ports[p].name || ('P' + p);
                         aPorts[p].m       = aPorts[p].m   || 0;
                         aPorts[p].d       = aPorts[p].d   || 0;
-                        aPorts[p].pwm     = aPorts[p].pwm || 0;
-
+                        if (aPorts[p].m == 1) {
+                            aPorts[p].misc    = aPorts[p].misc || 0;
+                        }
+                        if (aPorts[p].misc == 1) {
+                            aPorts[p].m2      = aPorts[p].m2   || 1;
+                        }
                         aPorts[p].role    = ports[p].role || 'button';
                     } else
                     if (aPorts[p].pty == 2) {
@@ -748,9 +752,20 @@
                     if (aPorts[p].pty == 3) {
                         // temperature - digital sensor
                         aPorts[p].name    = ports[p].name || ('P' + p);
-                        aPorts[p].m       = aPorts[p].m || (_ports[p].indexOf('hum') != -1 ? 1 : 0);
-                        aPorts[p].d       = aPorts[p].d || 0;
+                        ///aPorts[p].m       = aPorts[p].m || (_ports[p].indexOf('hum') != -1 ? 1 : 0);
+                        aPorts[p].d       = aPorts[p].d || 2;
                         aPorts[p].role    = ports[p].role || 'value.temperature';
+                        if (aPorts[p].d == 3) {
+                            aPorts[p].ecmd    = aPorts[p].ecmd || '';
+                            aPorts[p].eth     = aPorts[p].eth  || '';
+                            aPorts[p].m       = aPorts[p].m    || 0;
+                            aPorts[p].misc    = aPorts[p].misc || 0;
+                            aPorts[p].hst     = aPorts[p].hst  || 0;
+                            aPorts[p].naf     = aPorts[p].naf  || 0;
+                        }
+                        if (aPorts[p].d == 4) {
+                            aPorts[p].role    = ports[p].role || 'state';
+                        }
                     } else if (_ports[p].indexOf('temp:') != -1) {
                         // temperature - internal sensor
                         aPorts[p].pty     = 4;
