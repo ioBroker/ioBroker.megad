@@ -669,6 +669,7 @@
                     aPorts[p] = settingsPorts[p] || {};
 
                     if (aPorts[p].pn !== undefined) delete aPorts[p].pn;
+                    if (aPorts[p].pt !== undefined) delete aPorts[p].pt;
 
                     ports[p] = ports[p] || {};
                     if (aPorts[p].pty == 0) {
