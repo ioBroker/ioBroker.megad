@@ -73,6 +73,11 @@ systemDictionary = {
     "Cancel":               {"en": "Cancel",                "de": "Abrechen",                   "ru": "Отмена"},
     "Error":                {"en": "Error",                 "de": "Fehler",                     "ru": "Ошибка"},
     "Find devices":         {"en": "Find devices",          "de": "Suche Geräte",               "ru": "Искать устройства"},
+    "Enable adapter first": {
+        "en": "Enable adapter first",
+        "de": "Aktivieren sie zuerst den adapter",
+        "ru": "Сперва включите адаптер"
+    },
     "Nothing found":        {"en": "Nothing found",         "de": "Nichts gefunden",            "ru": "Ничего не найдено"},
     "Information will be merged. Are you sure?": {
         "en": "Information will be merged. Are you sure?",
