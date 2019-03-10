@@ -2,7 +2,7 @@
 ioBroker MegaD-328 adapter
 =================
 
-[![NPM version](http://img.shields.io/npm/v/iobroker.megad.svg)](https://www.npmjs.com/package/iobroker.megad)
+![Number of Installations](http://iobroker.live/badges/megad-installed.svg) ![Number of Installations](http://iobroker.live/badges/megad-stable.svg) [![NPM version](http://img.shields.io/npm/v/iobroker.megad.svg)](https://www.npmjs.com/package/iobroker.megad)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.megad.svg)](https://www.npmjs.com/package/iobroker.megad)
 [![Tests](https://travis-ci.org/ioBroker/ioBroker.megad.svg?branch=master)](https://travis-ci.org/ioBroker/ioBroker.megad)
 
