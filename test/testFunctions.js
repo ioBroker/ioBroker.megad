@@ -52,7 +52,7 @@ describe('Test MegaD', function() {
     before('Test MegaD: Start js-controller', function (_done) {
         this.timeout(600000); // because of first install from npm
 
-        setup.setupController(function () {
+        setup.setupController(async function () {
             var config = setup.getAdapterConfig();
             // enable adapter
             config.common.enabled  = true;
@@ -260,7 +260,7 @@ describe('Test MegaD', function() {
                 }
             ];
 
-            setup.setAdapterConfig(config.common, config.native);
+            await setup.setAdapterConfig(config.common, config.native);
 
             setup.startController(true, function (id, obj) {
                     if (onObjectChanged) onObjectChanged(id, obj);
