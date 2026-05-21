@@ -120,6 +120,10 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
          
           
 ## Changelog
+
+### **WORK IN PROGRESS**
+- (ioBroker-Bot) Adapter requires js-controller >= 6.0.11 now.
+
 ### 1.3.0 (2017-11-23)
 * (ausHaus) Removed support DHT11 sensors
 * (ausHaus) Added hysteresis function (ADC ports and DS18B20 sensors)
