@@ -1,78 +1,86 @@
 {
-    "common": {
-        "name":                     "megad",
-        "version":                  "1.3.0",
-        "news": {
-            "1.2.2": {
-                "en":               "Removed support DHT11 sensors\nAdded hysteresis function (ADC ports and DS18B20 sensors)\nDeleted team tget (request for internal temperature sensor value) is not yet done\nAdded the ability to Smooth to control smooth speed PWM control.",
-                "de":               "Removed support DHT11 sensors\nAdded hysteresis function (ADC ports and DS18B20 sensors)\nDeleted team tget (request for internal temperature sensor value) is not yet done\nAdded the ability to Smooth to control smooth speed PWM control.",
-                "ru":               "Removed support DHT11 sensors\nAdded hysteresis function (ADC ports and DS18B20 sensors)\nDeleted team tget (request for internal temperature sensor value) is not yet done\nAdded the ability to Smooth to control smooth speed PWM control."
-            },
-            "1.2.1": {
-                "en":               "extend digital temperature sensor with new type",
-                "de":               "extend digital temperature sensor with new type",
-                "ru":               "extend digital temperature sensor with new type"
-            }
-        },
-        "title":                    "Mega-D Adapter",
-        "desc":                     {
-            "en": "Lets control the MegaD-328 over ethernet/internet (http://www.ab-log.ru/smart-house/ethernet/megad-328)",
-            "de": "Ermöglicht die steuerung von MegaD-328 über Ethernet/Internet (http://www.ab-log.ru/smart-house/ethernet/megad-328)",
-            "ru": "Позволяет управлять MegaD-328 через ethernet/интернет (http://www.ab-log.ru/smart-house/ethernet/megad-328)"
-        },
-        "authors": [
-            "bluefox <dogafox@gmail.com>"
-        ],
-        "license":                  "MIT",
-        "platform":                 "Javascript/Node.js",
-        "mode":                     "daemon",
-        "loglevel":                 "info",
-        "icon":                     "megad.png",
-        "messagebox":               true,
-        "readme":                   "https://github.com/ioBroker/ioBroker.megad/blob/master/README.md",
-        "keywords":                 ["Mega-D", "communication"],
-		"enabled":                  true,
-        "extIcon":                  "https://raw.githubusercontent.com/ioBroker/ioBroker.megad/master/admin/megad.png",
-        "type":                     "hardware",
-        "localLink":                "http://%native_ip%/%password%",
-        "config": {
-            "width":     1050,
-            "height":    800,
-            "minWidth":  600,
-            "minHeight": 500
-        }
+  "common": {
+    "name": "megad",
+    "version": "1.3.0",
+    "news": {
+      "1.2.2": {
+        "en": "Removed support DHT11 sensors\nAdded hysteresis function (ADC ports and DS18B20 sensors)\nDeleted team tget (request for internal temperature sensor value) is not yet done\nAdded the ability to Smooth to control smooth speed PWM control.",
+        "de": "Removed support DHT11 sensors\nAdded hysteresis function (ADC ports and DS18B20 sensors)\nDeleted team tget (request for internal temperature sensor value) is not yet done\nAdded the ability to Smooth to control smooth speed PWM control.",
+        "ru": "Removed support DHT11 sensors\nAdded hysteresis function (ADC ports and DS18B20 sensors)\nDeleted team tget (request for internal temperature sensor value) is not yet done\nAdded the ability to Smooth to control smooth speed PWM control."
+      },
+      "1.2.1": {
+        "en": "extend digital temperature sensor with new type",
+        "de": "extend digital temperature sensor with new type",
+        "ru": "extend digital temperature sensor with new type"
+      }
     },
-    "native": {
-        "ip":                       "",
-        "name":                     "",
-        "port":                     80,
-        "pollInterval":             30,
-        "password":                 "sec",
-        "longPress":                700,
-        "doublePress":              600,
-        "ports":                    []
+    "title": "Mega-D Adapter",
+    "desc": {
+      "en": "Lets control the MegaD-328 over ethernet/internet (http://www.ab-log.ru/smart-house/ethernet/megad-328)",
+      "de": "Ermöglicht die steuerung von MegaD-328 über Ethernet/Internet (http://www.ab-log.ru/smart-house/ethernet/megad-328)",
+      "ru": "Позволяет управлять MegaD-328 через ethernet/интернет (http://www.ab-log.ru/smart-house/ethernet/megad-328)"
     },
-    "instanceObjects": [
-        {
-            "_id":  "info",
-            "type": "channel",
-            "common": {
-                "name": "Information"
-            },
-            "native": {}
-        },
-        {
-            "_id":  "info.connection",
-            "type": "state",
-            "common": {
-                "role":  "indicator.connected",
-                "name":  "If connected to MegaD",
-                "type":  "boolean",
-                "read":  true,
-                "write": false,
-                "def":   false
-            },
-            "native": {}
-        }
+    "authors": [
+      "bluefox <dogafox@gmail.com>"
+    ],
+    "license": "MIT",
+    "platform": "Javascript/Node.js",
+    "mode": "daemon",
+    "loglevel": "info",
+    "icon": "megad.png",
+    "messagebox": true,
+    "readme": "https://github.com/ioBroker/ioBroker.megad/blob/master/README.md",
+    "keywords": [
+      "Mega-D",
+      "communication"
+    ],
+    "enabled": true,
+    "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.megad/master/admin/megad.png",
+    "type": "hardware",
+    "localLink": "http://%native_ip%/%password%",
+    "config": {
+      "width": 1050,
+      "height": 800,
+      "minWidth": 600,
+      "minHeight": 500
+    },
+    "dependencies": [
+      {
+        "js-controller": ">=6.0.11"
+      }
     ]
+  },
+  "native": {
+    "ip": "",
+    "name": "",
+    "port": 80,
+    "pollInterval": 30,
+    "password": "sec",
+    "longPress": 700,
+    "doublePress": 600,
+    "ports": []
+  },
+  "instanceObjects": [
+    {
+      "_id": "info",
+      "type": "channel",
+      "common": {
+        "name": "Information"
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "role": "indicator.connected",
+        "name": "If connected to MegaD",
+        "type": "boolean",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    }
+  ]
 }
