@@ -27,6 +27,7 @@
         "platform":                 "Javascript/Node.js",
         "mode":                     "daemon",
         "loglevel":                 "info",
+        "tier": 2,
         "icon":                     "megad.png",
         "messagebox":               true,
         "readme":                   "https://github.com/ioBroker/ioBroker.megad/blob/master/README.md",
