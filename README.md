@@ -232,3 +232,5 @@ ioBrokerЗначение = MegaЗначение * Множитель + Сдви�
 
 ### 0.0.1 (2015-03-05)
 * (bluefox) make socket usable as module
+
+[Older changelogs can be found there](CHANGELOG_OLD.md)
