@@ -22,7 +22,7 @@
 'use strict';
 
 var utils = require('@iobroker/adapter-core'); // Get common adapter utils
-var http   = require('http');
+var http   = require('node:http');
 var server =  null;
 var ports  = {};
 var askInternalTemp = false;
@@ -381,7 +381,7 @@ function findIp(ip) {
 
     if (ip === 'localhost' || ip === '127.0.0.1') return '127.0.0.1';
 
-    var interfaces = require('os').networkInterfaces();
+    var interfaces = require('node:os').networkInterfaces();
 
     for (var k in interfaces) {
         if (!interfaces.hasOwnProperty(k)) continue;
@@ -720,7 +720,7 @@ function discoverMegaOnIP(ip, callback) {
     nums[3] = 255;
     ip = nums.join('.');
 
-    var dgram = require('dgram');
+    var dgram = require('node:dgram');
     var message = new Buffer([0xAA, 0, 12]);
     var client = dgram.createSocket('udp4');
     client.on('error', function (err) {
@@ -752,7 +752,7 @@ function discoverMegaOnIP(ip, callback) {
 }
 
 function discoverMega(obj) {
-    var interfaces = require('os').networkInterfaces();
+    var interfaces = require('node:os').networkInterfaces();
     var result = [];
     var count  = 0;
     for (var k in interfaces) {
@@ -1690,7 +1690,7 @@ function main() {
     if (adapter.config.ip) {
         adapter.config.port = parseInt(adapter.config.port, 10) || 0;
         if (adapter.config.port) {
-            server = require('http').createServer(restApi);
+            server = require('node:http').createServer(restApi);
 
             adapter.getPort(adapter.config.port, function (port) {
                 if (parseInt(port, 10) !== adapter.config.port && !adapter.config.findNextPort) {
